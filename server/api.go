@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/apartmentlines/mattermost-plugin-poor-mans-scheduled-messages/internal/logging"
 	"github.com/apartmentlines/mattermost-plugin-poor-mans-scheduled-messages/server/constants"
 	"github.com/apartmentlines/mattermost-plugin-poor-mans-scheduled-messages/server/types"
 	"github.com/gorilla/mux"
@@ -16,7 +17,7 @@ import (
 )
 
 func (p *Plugin) ServeHTTP(_ *plugin.Context, w http.ResponseWriter, r *http.Request) {
-	p.logger.Debug("Received HTTP request", "method", r.Method, "url", r.URL.String())
+	p.logger.Debug("Received HTTP request", "method", r.Method)
 	router := mux.NewRouter()
 	router.Use(p.MattermostAuthorizationRequired)
 	api := router.PathPrefix("/api/v1").Subrouter()
@@ -28,7 +29,7 @@ func (p *Plugin) ServeHTTP(_ *plugin.Context, w http.ResponseWriter, r *http.Req
 func (p *Plugin) MattermostAuthorizationRequired(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		userID := r.Header.Get(constants.HTTPHeaderMattermostUserID)
-		p.logger.Debug("Checking Mattermost authorization", "user_id", userID, "url", r.URL.String())
+		p.logger.Debug("Checking Mattermost authorization", "user_id", userID)
 		if userID == "" {
 			p.logger.Warn("Authorization failed: Missing user ID header", "header", constants.HTTPHeaderMattermostUserID, "remote_addr", r.RemoteAddr)
 			http.Error(w, "Not authorized", http.StatusUnauthorized)
@@ -46,7 +47,7 @@ func (p *Plugin) UserDeleteMessage(w http.ResponseWriter, r *http.Request) {
 	p.logger.Debug("Parsing delete request body", "user_id", userID)
 	req, msgID, err := parseDeleteRequest(p, r)
 	if err != nil {
-		p.logger.Error("Failed to parse delete request", "user_id", userID, "error", err)
+		p.logger.Error("Failed to parse delete request", "user_id", userID, "error_reason", logging.ErrorReason(err))
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
@@ -61,7 +62,7 @@ func (p *Plugin) UserDeleteMessage(w http.ResponseWriter, r *http.Request) {
 	updatedList := p.Command.BuildEphemeralList(args)
 	p.updateEphemeralPostWithList(userID, req.PostId, req.ChannelId, updatedList)
 	if err != nil {
-		p.logger.Error("Command layer failed to delete message", "user_id", userID, "message_id", msgID, "error", err)
+		p.logger.Error("Command layer failed to delete message", "user_id", userID, "message_id", msgID, "error_reason", logging.ErrorReason(err))
 		http.Error(w, fmt.Sprintf("Failed to delete message: %v", err), http.StatusInternalServerError)
 		p.sendDeletionError(userID, req.ChannelId, msgID, err)
 		return
@@ -79,7 +80,7 @@ func (p *Plugin) UserSendMessage(w http.ResponseWriter, r *http.Request) {
 	p.logger.Debug("Parsing send request body", "user_id", userID)
 	req, msgID, err := parseSendRequest(p, r)
 	if err != nil {
-		p.logger.Error("Failed to parse send request", "user_id", userID, "error", err)
+		p.logger.Error("Failed to parse send request", "user_id", userID, "error_reason", logging.ErrorReason(err))
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
@@ -88,7 +89,7 @@ func (p *Plugin) UserSendMessage(w http.ResponseWriter, r *http.Request) {
 	p.logger.Debug("Calling command layer UserSendMessage", "user_id", userID, "message_id", msgID)
 	msg, err := p.Command.UserSendMessage(userID, msgID)
 	if err != nil {
-		p.logger.Error("Command layer failed to validate send", "user_id", userID, "message_id", msgID, "error", err)
+		p.logger.Error("Command layer failed to validate send", "user_id", userID, "message_id", msgID, "error_reason", logging.ErrorReason(err))
 		updatedList := p.Command.BuildEphemeralList(&model.CommandArgs{UserId: userID})
 		p.updateEphemeralPostWithList(userID, req.PostId, req.ChannelId, updatedList)
 		http.Error(w, fmt.Sprintf("Failed to send message: %v", err), http.StatusInternalServerError)
@@ -104,7 +105,7 @@ func (p *Plugin) UserSendMessage(w http.ResponseWriter, r *http.Request) {
 	p.updateEphemeralPostWithList(userID, req.PostId, req.ChannelId, updatedList)
 
 	if sendErr != nil {
-		p.logger.Error("Failed to send message via scheduler", "user_id", userID, "message_id", msgID, "error", sendErr)
+		p.logger.Error("Failed to send message via scheduler", "user_id", userID, "message_id", msgID, "error_reason", logging.ErrorReason(sendErr))
 		http.Error(w, fmt.Sprintf("Failed to send message: %v", sendErr), http.StatusInternalServerError)
 		p.sendSendError(userID, req.ChannelId, msgID, sendErr)
 		return
@@ -139,21 +140,21 @@ func parseDeleteRequest(p *Plugin, r *http.Request) (*model.PostActionIntegratio
 	p.logger.Debug("Decoding JSON body for delete request")
 	var req model.PostActionIntegrationRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		p.logger.Error("Failed to decode JSON body", "error", err)
+		p.logger.Error("Failed to decode JSON body", "error_reason", logging.ErrorReason(err))
 		return nil, "", fmt.Errorf("invalid request body: %w", err)
 	}
 
-	p.logger.Debug("Validating delete request context", "context", req.Context)
+	p.logger.Debug("Validating delete request context")
 	action, actionOk := req.Context["action"].(string)
 	msgID, idOk := req.Context["id"].(string)
 
 	if !actionOk || action != "delete" || !idOk || msgID == "" {
 		err := errors.New("invalid delete request context: missing or invalid action/id")
-		p.logger.Error("Delete request context validation failed", "error", err, "action", action, "action_ok", actionOk, "msg_id", msgID, "id_ok", idOk)
+		p.logger.Error("Delete request context validation failed", "error_reason", logging.ErrorReason(err), "action_ok", actionOk, "msg_id", msgID, "id_ok", idOk)
 		return nil, "", err
 	}
 
-	p.logger.Debug("Delete request parsed and validated successfully", "action", action, "message_id", msgID)
+	p.logger.Debug("Delete request parsed and validated successfully", "message_id", msgID)
 	return &req, msgID, nil
 }
 
@@ -161,21 +162,21 @@ func parseSendRequest(p *Plugin, r *http.Request) (*model.PostActionIntegrationR
 	p.logger.Debug("Decoding JSON body for send request")
 	var req model.PostActionIntegrationRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		p.logger.Error("Failed to decode JSON body", "error", err)
+		p.logger.Error("Failed to decode JSON body", "error_reason", logging.ErrorReason(err))
 		return nil, "", fmt.Errorf("invalid request body: %w", err)
 	}
 
-	p.logger.Debug("Validating send request context", "context", req.Context)
+	p.logger.Debug("Validating send request context")
 	action, actionOk := req.Context["action"].(string)
 	msgID, idOk := req.Context["id"].(string)
 
 	if !actionOk || action != "send" || !idOk || msgID == "" {
 		err := errors.New("invalid send request context: missing or invalid action/id")
-		p.logger.Error("Send request context validation failed", "error", err, "action", action, "action_ok", actionOk, "msg_id", msgID, "id_ok", idOk)
+		p.logger.Error("Send request context validation failed", "error_reason", logging.ErrorReason(err), "action_ok", actionOk, "msg_id", msgID, "id_ok", idOk)
 		return nil, "", err
 	}
 
-	p.logger.Debug("Send request parsed and validated successfully", "action", action, "message_id", msgID)
+	p.logger.Debug("Send request parsed and validated successfully", "message_id", msgID)
 	return &req, msgID, nil
 }
 
@@ -187,10 +188,10 @@ func (p *Plugin) updateEphemeralPostWithList(userID string, postID string, chann
 }
 
 func (p *Plugin) sendDeletionConfirmation(userID string, channelID string, deletedMsg *types.ScheduledMessage) {
-	p.logger.Debug("Preparing deletion confirmation message", "user_id", userID, "channel_id", channelID, "message_id", deletedMsg.ID, "timezone", deletedMsg.Timezone)
+	p.logger.Debug("Preparing deletion confirmation message", "user_id", userID, "channel_id", channelID, "message_id", deletedMsg.ID)
 	loc, err := time.LoadLocation(deletedMsg.Timezone)
 	if err != nil {
-		p.logger.Warn("Failed to load timezone for confirmation message, falling back to UTC", "user_id", userID, "message_id", deletedMsg.ID, "timezone", deletedMsg.Timezone, "error", err)
+		p.logger.Warn("Failed to load timezone for confirmation message, falling back to UTC", "user_id", userID, "message_id", deletedMsg.ID, "error_reason", logging.ErrorReason(err))
 		loc = time.UTC
 	}
 	humanTime := deletedMsg.PostAt.In(loc).Format(constants.TimeLayout)
@@ -207,7 +208,7 @@ func (p *Plugin) sendDeletionConfirmation(userID string, channelID string, delet
 }
 
 func (p *Plugin) sendDeletionError(userID string, channelID string, msgID string, err error) {
-	p.logger.Debug("Preparing deletion error message", "user_id", userID, "channel_id", channelID, "message_id", msgID, "error", err)
+	p.logger.Debug("Preparing deletion error message", "user_id", userID, "channel_id", channelID, "message_id", msgID, "error_reason", logging.ErrorReason(err))
 	alert := &model.Post{
 		UserId:    userID,
 		ChannelId: channelID,
@@ -219,10 +220,10 @@ func (p *Plugin) sendDeletionError(userID string, channelID string, msgID string
 }
 
 func (p *Plugin) sendSendConfirmation(userID string, channelID string, msg *types.ScheduledMessage) {
-	p.logger.Debug("Preparing send confirmation message", "user_id", userID, "channel_id", channelID, "message_id", msg.ID, "timezone", msg.Timezone)
+	p.logger.Debug("Preparing send confirmation message", "user_id", userID, "channel_id", channelID, "message_id", msg.ID)
 	loc, err := time.LoadLocation(msg.Timezone)
 	if err != nil {
-		p.logger.Warn("Failed to load timezone for confirmation message, falling back to UTC", "user_id", userID, "message_id", msg.ID, "timezone", msg.Timezone, "error", err)
+		p.logger.Warn("Failed to load timezone for confirmation message, falling back to UTC", "user_id", userID, "message_id", msg.ID, "error_reason", logging.ErrorReason(err))
 		loc = time.UTC
 	}
 	humanTime := msg.PostAt.In(loc).Format(constants.TimeLayout)
@@ -239,7 +240,7 @@ func (p *Plugin) sendSendConfirmation(userID string, channelID string, msg *type
 }
 
 func (p *Plugin) sendSendError(userID string, channelID string, msgID string, err error) {
-	p.logger.Debug("Preparing send error message", "user_id", userID, "channel_id", channelID, "message_id", msgID, "error", err)
+	p.logger.Debug("Preparing send error message", "user_id", userID, "channel_id", channelID, "message_id", msgID, "error_reason", logging.ErrorReason(err))
 	alert := &model.Post{
 		UserId:    userID,
 		ChannelId: channelID,

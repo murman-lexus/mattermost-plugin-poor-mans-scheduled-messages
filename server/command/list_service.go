@@ -5,6 +5,7 @@ import (
 	"sort"
 	"time"
 
+	"github.com/apartmentlines/mattermost-plugin-poor-mans-scheduled-messages/internal/logging"
 	"github.com/apartmentlines/mattermost-plugin-poor-mans-scheduled-messages/internal/ports"
 	"github.com/apartmentlines/mattermost-plugin-poor-mans-scheduled-messages/server/constants"
 	"github.com/apartmentlines/mattermost-plugin-poor-mans-scheduled-messages/server/formatter"
@@ -34,7 +35,7 @@ func (l *ListService) Build(userID string) *model.CommandResponse {
 	l.logger.Info("Building scheduled message list for user", "user_id", userID)
 	msgs, err := l.loadMessages(userID)
 	if err != nil {
-		l.logger.Error("Failed to load messages for user", "user_id", userID, "error", err)
+		l.logger.Error("Failed to load messages for user", "user_id", userID, "error_reason", logging.ErrorReason(err))
 		return errorResponse(fmt.Sprintf("%s Error retrieving message list: %v", constants.EmojiError, err))
 	}
 	if len(msgs) == 0 {
@@ -52,7 +53,7 @@ func (l *ListService) loadMessages(userID string) ([]*types.ScheduledMessage, er
 	l.logger.Debug("Loading scheduled message IDs for user", "user_id", userID)
 	ids, err := l.store.ListUserMessageIDs(userID)
 	if err != nil {
-		l.logger.Error("Failed to list user message IDs", "user_id", userID, "error", err)
+		l.logger.Error("Failed to list user message IDs", "user_id", userID, "error_reason", logging.ErrorReason(err))
 		return nil, err
 	}
 	l.logger.Debug("Found message IDs for user", "user_id", userID, "count", len(ids))
@@ -63,14 +64,14 @@ func (l *ListService) loadMessages(userID string) ([]*types.ScheduledMessage, er
 		msg, err := l.store.GetScheduledMessage(id)
 		if err != nil {
 			// Log the error but continue trying to load other messages
-			l.logger.Error("Failed to get scheduled message details", "user_id", userID, "message_id", id, "error", err)
+			l.logger.Error("Failed to get scheduled message details", "user_id", userID, "message_id", id, "error_reason", logging.ErrorReason(err))
 			continue
 		}
 		if msg == nil || msg.ID == "" {
 			l.logger.Warn("Scheduled message referenced in user index not found, cleaning up", "user_id", userID, "message_id", id)
 			// Attempt cleanup, log if cleanup fails but continue processing
 			if cleanupErr := l.store.CleanupMessageFromUserIndex(userID, id); cleanupErr != nil {
-				l.logger.Error("Failed to cleanup missing message from user index", "user_id", userID, "message_id", id, "error", cleanupErr)
+				l.logger.Error("Failed to cleanup missing message from user index", "user_id", userID, "message_id", id, "error_reason", logging.ErrorReason(cleanupErr))
 			}
 			continue
 		}

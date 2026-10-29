@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/apartmentlines/mattermost-plugin-poor-mans-scheduled-messages/internal/logging"
 	"github.com/apartmentlines/mattermost-plugin-poor-mans-scheduled-messages/internal/ports"
 	"github.com/apartmentlines/mattermost-plugin-poor-mans-scheduled-messages/server/constants"
 	"github.com/mattermost/mattermost/server/public/model"
@@ -39,7 +40,7 @@ func (c *Channel) GetInfo(channelID string) (*ports.ChannelInfo, error) {
 	c.logger.Debug("Getting channel info", "channel_id", channelID)
 	channel, channelGetErr := c.channelAPI.Get(channelID)
 	if channelGetErr != nil {
-		c.logger.Error("Failed to get channel from API", "channel_id", channelID, "error", channelGetErr)
+		c.logger.Error("Failed to get channel from API", "channel_id", channelID, "error_reason", logging.ErrorReason(channelGetErr))
 		return nil, fmt.Errorf("failed to get channel %s: %w", channelID, channelGetErr)
 	}
 
@@ -56,7 +57,7 @@ func (c *Channel) getDirectOrGroupChannelInfo(channel *model.Channel) (*ports.Ch
 	c.logger.Debug("Getting direct or group channel info", "channel_id", channel.Id)
 	members, listMembersErr := c.channelAPI.ListMembers(channel.Id, constants.DefaultPage, constants.DefaultChannelMembersPerPage)
 	if listMembersErr != nil {
-		c.logger.Error("Failed to list channel members", "channel_id", channel.Id, "error", listMembersErr)
+		c.logger.Error("Failed to list channel members", "channel_id", channel.Id, "error_reason", logging.ErrorReason(listMembersErr))
 		return nil, fmt.Errorf("failed to get members of channel %s: %w", channel.Id, listMembersErr)
 	}
 	usernames, err := c.mapMembersToUsernames(members)
@@ -65,7 +66,7 @@ func (c *Channel) getDirectOrGroupChannelInfo(channel *model.Channel) (*ports.Ch
 		return nil, err
 	}
 	dmGroupName := strings.Join(usernames, ", ")
-	c.logger.Debug("Successfully retrieved direct/group channel info", "channel_id", channel.Id, "member_usernames", dmGroupName)
+	c.logger.Debug("Successfully retrieved direct/group channel info", "channel_id", channel.Id)
 	return &ports.ChannelInfo{
 		ChannelID:   channel.Id,
 		ChannelType: channel.Type,
@@ -77,10 +78,10 @@ func (c *Channel) getPublicOrPrivateChannelInfo(channel *model.Channel) (*ports.
 	c.logger.Debug("Getting public or private channel info", "channel_id", channel.Id, "team_id", channel.TeamId)
 	team, err := c.teamAPI.Get(channel.TeamId)
 	if err != nil {
-		c.logger.Error("Failed to get team info", "team_id", channel.TeamId, "error", err)
+		c.logger.Error("Failed to get team info", "team_id", channel.TeamId, "error_reason", logging.ErrorReason(err))
 		return nil, fmt.Errorf("failed to get team %s: %w", channel.TeamId, err)
 	}
-	c.logger.Debug("Successfully retrieved public/private channel info", "channel_id", channel.Id, "team_name", team.DisplayName, "channel_name", channel.Name)
+	c.logger.Debug("Successfully retrieved public/private channel info", "channel_id", channel.Id)
 	return &ports.ChannelInfo{
 		ChannelID:   channel.Id,
 		ChannelType: channel.Type,
@@ -105,15 +106,15 @@ func (c *Channel) GetInfoOrUnknown(channelID string) *ports.ChannelInfo {
 		c.logger.Debug("Successfully got channel info", "channel_id", channelID)
 		return channelInfo
 	}
-	c.logger.Warn("GetInfo failed, returning unknown channel info", "channel_id", channelID, "error", getChannelErr)
+	c.logger.Warn("GetInfo failed, returning unknown channel info", "channel_id", channelID, "error_reason", logging.ErrorReason(getChannelErr))
 	return c.UnknownChannel()
 }
 
 // MakeChannelLink formats a channel link string for display.
 func (c *Channel) MakeChannelLink(channelInfo *ports.ChannelInfo) string {
-	c.logger.Debug("Making channel link string", "channel_id", channelInfo.ChannelID, "channel_type", channelInfo.ChannelType, "channel_link_raw", channelInfo.ChannelLink)
+	c.logger.Debug("Making channel link string", "channel_id", channelInfo.ChannelID, "channel_type", channelInfo.ChannelType)
 	if channelInfo.ChannelID == "" {
-		c.logger.Debug("Channel ID is empty, returning raw link (unknown channel)", "channel_link", channelInfo.ChannelLink)
+		c.logger.Debug("Channel ID is empty, returning raw link (unknown channel)")
 		return channelInfo.ChannelLink
 	}
 	if channelInfo.ChannelType == model.ChannelTypeDirect || channelInfo.ChannelType == model.ChannelTypeGroup {
@@ -129,11 +130,11 @@ func (c *Channel) mapMembersToUsernames(members []*model.ChannelMember) ([]strin
 		c.logger.Debug("Getting user info for member", "user_id", member.UserId)
 		user, err := c.userAPI.Get(member.UserId)
 		if err != nil {
-			c.logger.Error("Failed to get user info", "user_id", member.UserId, "error", err)
+			c.logger.Error("Failed to get user info", "user_id", member.UserId, "error_reason", logging.ErrorReason(err))
 			return nil, fmt.Errorf("failed to get user %s: %w", member.UserId, err)
 		}
 		usernames = append(usernames, "@"+user.Username)
 	}
-	c.logger.Debug("Successfully mapped members to usernames", "usernames", usernames)
+	c.logger.Debug("Successfully mapped members to usernames")
 	return usernames, nil
 }

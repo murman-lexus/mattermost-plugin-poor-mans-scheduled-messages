@@ -7,6 +7,7 @@ import (
 	"sync"
 
 	"github.com/apartmentlines/mattermost-plugin-poor-mans-scheduled-messages/adapters/mm"
+	"github.com/apartmentlines/mattermost-plugin-poor-mans-scheduled-messages/internal/logging"
 	"github.com/apartmentlines/mattermost-plugin-poor-mans-scheduled-messages/internal/ports"
 	"github.com/apartmentlines/mattermost-plugin-poor-mans-scheduled-messages/server/bot"
 	"github.com/apartmentlines/mattermost-plugin-poor-mans-scheduled-messages/server/channel"
@@ -102,7 +103,7 @@ func (p *Plugin) loadHelpText(text string) (string, error) {
 	p.API.LogDebug("Help text argument empty, attempting to load from file")
 	bundlePath, err := p.API.GetBundlePath()
 	if err != nil {
-		p.API.LogError("Failed to get bundle path for help text", "error", err)
+		p.API.LogError("Failed to get bundle path for help text", "error_reason", logging.ErrorReason(err))
 		return "", fmt.Errorf("failed to get bundle path: %w", err)
 	}
 	helpFilePath := filepath.Join(bundlePath, constants.AssetsDir, constants.HelpFilename)
@@ -110,7 +111,7 @@ func (p *Plugin) loadHelpText(text string) (string, error) {
 	// #nosec G304 -- helpFilePath is derived from the plugin bundle path.
 	helpBytes, err := os.ReadFile(helpFilePath)
 	if err != nil {
-		p.API.LogError("Failed to read help file", "path", helpFilePath, "error", err)
+		p.API.LogError("Failed to read help file", "path", helpFilePath, "error_reason", logging.ErrorReason(err))
 		return "", fmt.Errorf("failed to read help file %s: %w", helpFilePath, err)
 	}
 	loadedText := string(helpBytes)
@@ -137,7 +138,7 @@ func (p *Plugin) OnActivateWith(
 	var helpText string
 	var helpErr error
 	if helpText, helpErr = p.loadHelpText(help); helpErr != nil {
-		p.API.LogError("Plugin activation failed: could not load help text.", "error", helpErr.Error())
+		p.API.LogError("Plugin activation failed: could not load help text.", "error_reason", logging.ErrorReason(helpErr))
 		return helpErr
 	}
 	p.helpText = helpText
@@ -146,7 +147,7 @@ func (p *Plugin) OnActivateWith(
 	p.API.LogDebug("Ensuring bot account exists")
 	botID, botErr := ensureBot(&p.client.Bot, mm.NewBotProfileImageService())
 	if botErr != nil {
-		p.API.LogError("Plugin activation failed: could not ensure bot.", "error", botErr.Error())
+		p.API.LogError("Plugin activation failed: could not ensure bot.", "error_reason", logging.ErrorReason(botErr))
 		return botErr
 	}
 	p.API.LogDebug("Bot account ensured", "bot_id", botID)
@@ -162,7 +163,7 @@ func (p *Plugin) OnActivateWith(
 	p.API.LogDebug("Clock created")
 
 	if initErr := p.initialize(botID, clk, builder); initErr != nil {
-		p.API.LogError("Plugin activation failed: could not initialize dependencies.", "error", initErr.Error())
+		p.API.LogError("Plugin activation failed: could not initialize dependencies.", "error_reason", logging.ErrorReason(initErr))
 		return initErr
 	}
 	p.API.LogDebug("Plugin components initialized")
@@ -216,7 +217,7 @@ func (p *Plugin) initialize(botID string, clk ports.Clock, builder AppBuilder) e
 
 	p.logger.Debug("Registering command handler")
 	if err := p.Command.Register(); err != nil {
-		p.logger.Error("Failed to register command handler", "error", err)
+		p.logger.Error("Failed to register command handler", "error_reason", logging.ErrorReason(err))
 		return err
 	}
 	p.logger.Debug("Command handler registered successfully")
@@ -229,12 +230,12 @@ func (p *Plugin) initialize(botID string, clk ports.Clock, builder AppBuilder) e
 }
 
 func (p *Plugin) ExecuteCommand(_ *plugin.Context, args *model.CommandArgs) (*model.CommandResponse, *model.AppError) {
-	p.logger.Debug("ExecuteCommand hook triggered", "user_id", args.UserId, "channel_id", args.ChannelId, "command", args.Command)
+	p.logger.Debug("ExecuteCommand hook triggered", "user_id", args.UserId, "channel_id", args.ChannelId)
 	resp, appErr := p.Command.Execute(args)
 	if appErr != nil {
-		p.logger.Error("Command execution failed", "user_id", args.UserId, "command", args.Command, "error", appErr)
+		p.logger.Error("Command execution failed", "user_id", args.UserId, "error_reason", logging.ErrorReason(appErr))
 	} else {
-		p.logger.Debug("Command execution successful", "user_id", args.UserId, "command", args.Command)
+		p.logger.Debug("Command execution successful", "user_id", args.UserId)
 	}
 	return resp, appErr
 }

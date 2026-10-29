@@ -6,6 +6,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/apartmentlines/mattermost-plugin-poor-mans-scheduled-messages/internal/logging"
 	"github.com/apartmentlines/mattermost-plugin-poor-mans-scheduled-messages/internal/ports"
 	"github.com/apartmentlines/mattermost-plugin-poor-mans-scheduled-messages/server/formatter"
 	"github.com/apartmentlines/mattermost-plugin-poor-mans-scheduled-messages/server/types"
@@ -103,7 +104,7 @@ func (s *Scheduler) processDueMessages() {
 
 	messages, err := s.getAllScheduledMessages()
 	if err != nil {
-		s.logger.Error("Failed to list scheduled messages", "error", err)
+		s.logger.Error("Failed to list scheduled messages", "error_reason", logging.ErrorReason(err))
 		return
 	}
 	s.logger.Debug("Retrieved scheduled messages", "count", len(messages))
@@ -145,7 +146,7 @@ func (s *Scheduler) SendNow(msg *types.ScheduledMessage) error {
 		return err
 	}
 	if err := s.postMessage(msg); err != nil {
-		s.logger.Warn("Message posting failed, attempting to DM user", "message_id", msg.ID, "user_id", msg.UserID, "error", err)
+		s.logger.Warn("Message posting failed, attempting to DM user", "message_id", msg.ID, "user_id", msg.UserID, "error_reason", logging.ErrorReason(err))
 		s.dmUserOnFailedMessage(msg, err)
 		return err
 	}
@@ -157,7 +158,7 @@ func (s *Scheduler) deleteSchedule(msg *types.ScheduledMessage) error {
 	s.logger.Debug("Deleting scheduled message from store", "message_id", msg.ID, "user_id", msg.UserID)
 	err := s.store.DeleteScheduledMessage(msg.UserID, msg.ID)
 	if err != nil {
-		s.logger.Error("Failed to delete scheduled message from store", "message_id", msg.ID, "user_id", msg.UserID, "error", err)
+		s.logger.Error("Failed to delete scheduled message from store", "message_id", msg.ID, "user_id", msg.UserID, "error_reason", logging.ErrorReason(err))
 	}
 	s.logger.Debug("Successfully deleted scheduled message", "message_id", msg.ID, "user_id", msg.UserID)
 	return err
@@ -173,14 +174,14 @@ func (s *Scheduler) postMessage(msg *types.ScheduledMessage) error {
 	}
 	postErr := s.poster.CreatePost(post)
 	if postErr != nil {
-		s.logger.Error("Failed to post scheduled message via PostService", "message_id", msg.ID, "user_id", msg.UserID, "channel_id", msg.ChannelID, "error", postErr)
+		s.logger.Error("Failed to post scheduled message via PostService", "message_id", msg.ID, "user_id", msg.UserID, "channel_id", msg.ChannelID, "error_reason", logging.ErrorReason(postErr))
 	}
 	s.logger.Debug("Successfully created post via PostService", "message_id", msg.ID, "user_id", msg.UserID, "channel_id", msg.ChannelID)
 	return postErr
 }
 
 func (s *Scheduler) dmUserOnFailedMessage(msg *types.ScheduledMessage, postErr error) {
-	s.logger.Debug("Attempting to DM user about failed message", "message_id", msg.ID, "user_id", msg.UserID, "original_channel_id", msg.ChannelID, "post_error", postErr)
+	s.logger.Debug("Attempting to DM user about failed message", "message_id", msg.ID, "user_id", msg.UserID, "original_channel_id", msg.ChannelID, "post_error_reason", logging.ErrorReason(postErr))
 	channelInfo := s.linker.MakeChannelLink(s.linker.GetInfoOrUnknown(msg.ChannelID))
 	message := formatter.FormatSchedulerFailure(channelInfo, postErr, msg.MessageContent)
 	post := &model.Post{
@@ -188,7 +189,7 @@ func (s *Scheduler) dmUserOnFailedMessage(msg *types.ScheduledMessage, postErr e
 	}
 	dmErr := s.poster.DM(s.botID, msg.UserID, post)
 	if dmErr != nil {
-		s.logger.Error("Failed to send DM alert to user about failed scheduled message", "message_id", msg.ID, "user_id", msg.UserID, "dm_error", dmErr, "original_post_error", postErr)
+		s.logger.Error("Failed to send DM alert to user about failed scheduled message", "message_id", msg.ID, "user_id", msg.UserID, "dm_error_reason", logging.ErrorReason(dmErr), "original_post_error_reason", logging.ErrorReason(postErr))
 	} else {
 		s.logger.Debug("Successfully sent DM alert to user", "message_id", msg.ID, "user_id", msg.UserID)
 	}

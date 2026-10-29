@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"slices"
 
+	"github.com/apartmentlines/mattermost-plugin-poor-mans-scheduled-messages/internal/logging"
 	"github.com/apartmentlines/mattermost-plugin-poor-mans-scheduled-messages/internal/ports"
 	"github.com/apartmentlines/mattermost-plugin-poor-mans-scheduled-messages/server/constants"
 	"github.com/apartmentlines/mattermost-plugin-poor-mans-scheduled-messages/server/types"
@@ -31,7 +32,7 @@ func (s *kvStore) SaveScheduledMessage(userID string, msg *types.ScheduledMessag
 	s.logger.Debug("Adding message ID to user index", "user_id", userID, "message_id", msg.ID)
 	_, addIndexErr := s.addUserMessageToIndex(userID, msg.ID)
 	if addIndexErr != nil {
-		s.logger.Error("Failed to add message ID to user index", "user_id", userID, "message_id", msg.ID, "error", addIndexErr)
+		s.logger.Error("Failed to add message ID to user index", "user_id", userID, "message_id", msg.ID, "error_reason", logging.ErrorReason(addIndexErr))
 		return fmt.Errorf("failed to update user index: %w", addIndexErr)
 	}
 	s.logger.Debug("Successfully added message ID to user index", "user_id", userID, "message_id", msg.ID)
@@ -39,7 +40,7 @@ func (s *kvStore) SaveScheduledMessage(userID string, msg *types.ScheduledMessag
 	s.logger.Debug("Saving scheduled message data", "message_id", msg.ID)
 	_, saveMessageErr := s.saveNewScheduledMessage(msg)
 	if saveMessageErr != nil {
-		s.logger.Error("Failed to save scheduled message data", "message_id", msg.ID, "error", saveMessageErr)
+		s.logger.Error("Failed to save scheduled message data", "message_id", msg.ID, "error_reason", logging.ErrorReason(saveMessageErr))
 		return fmt.Errorf("failed to save message data: %w", saveMessageErr)
 	}
 	s.logger.Info("Successfully saved scheduled message and updated index", "user_id", userID, "message_id", msg.ID)
@@ -52,7 +53,7 @@ func (s *kvStore) DeleteScheduledMessage(userID string, msgID string) error {
 	s.logger.Debug("Deleting scheduled message data", "message_id", msgID)
 	scheduleErr := s.deleteScheduledMessageByID(msgID)
 	if scheduleErr != nil {
-		s.logger.Error("Failed to delete scheduled message data", "message_id", msgID, "error", scheduleErr)
+		s.logger.Error("Failed to delete scheduled message data", "message_id", msgID, "error_reason", logging.ErrorReason(scheduleErr))
 		return fmt.Errorf("failed to delete message data: %w", scheduleErr)
 	}
 	s.logger.Debug("Successfully deleted scheduled message data", "message_id", msgID)
@@ -60,7 +61,7 @@ func (s *kvStore) DeleteScheduledMessage(userID string, msgID string) error {
 	s.logger.Debug("Removing message ID from user index", "user_id", userID, "message_id", msgID)
 	_, removeIndexErr := s.removeUserMessageFromIndex(userID, msgID)
 	if removeIndexErr != nil {
-		s.logger.Error("Failed to remove message ID from user index", "user_id", userID, "message_id", msgID, "error", removeIndexErr)
+		s.logger.Error("Failed to remove message ID from user index", "user_id", userID, "message_id", msgID, "error_reason", logging.ErrorReason(removeIndexErr))
 		return fmt.Errorf("failed to remove from user index: %w", removeIndexErr)
 	}
 	s.logger.Debug("Successfully removed message ID from user index", "user_id", userID, "message_id", msgID)
@@ -72,7 +73,7 @@ func (s *kvStore) CleanupMessageFromUserIndex(userID string, msgID string) error
 	s.logger.Debug("Attempting to cleanup message ID from user index", "user_id", userID, "message_id", msgID)
 	_, removeIndexErr := s.removeUserMessageFromIndex(userID, msgID)
 	if removeIndexErr != nil {
-		s.logger.Error("Failed to remove message ID from user index during cleanup", "user_id", userID, "message_id", msgID, "error", removeIndexErr)
+		s.logger.Error("Failed to remove message ID from user index during cleanup", "user_id", userID, "message_id", msgID, "error_reason", logging.ErrorReason(removeIndexErr))
 		return fmt.Errorf("failed cleanup remove from user index: %w", removeIndexErr)
 	}
 	s.logger.Debug("Successfully cleaned up message ID from user index (or it was already gone)", "user_id", userID, "message_id", msgID)
@@ -86,7 +87,7 @@ func (s *kvStore) GetScheduledMessage(msgID string) (*types.ScheduledMessage, er
 	s.logger.Debug("Calling KV Get", "key", key)
 	err := s.kv.Get(key, &msg)
 	if err != nil {
-		s.logger.Error("Failed to get scheduled message from KV store", "key", key, "error", err)
+		s.logger.Error("Failed to get scheduled message from KV store", "key", key, "error_reason", logging.ErrorReason(err))
 		return nil, fmt.Errorf("kv.Get failed for key %s: %w", key, err)
 	}
 	if msg.ID == "" {
@@ -104,7 +105,7 @@ func (s *kvStore) ListScheduledMessages() ([]*types.ScheduledMessage, error) {
 	s.logger.Debug("Calling KV ListKeys", "prefix", prefix, "page", constants.DefaultPage, "perPage", constants.MaxFetchScheduledMessages)
 	keys, err := s.kv.ListKeys(constants.DefaultPage, constants.MaxFetchScheduledMessages, s.listMatchingService.WithPrefix(prefix))
 	if err != nil {
-		s.logger.Error("Failed to list keys from KV store", "prefix", prefix, "error", err)
+		s.logger.Error("Failed to list keys from KV store", "prefix", prefix, "error_reason", logging.ErrorReason(err))
 		return nil, fmt.Errorf("kv.ListKeys failed for prefix %s: %w", prefix, err)
 	}
 	s.logger.Debug("Successfully listed keys", "prefix", prefix, "count", len(keys))
@@ -114,7 +115,7 @@ func (s *kvStore) ListScheduledMessages() ([]*types.ScheduledMessage, error) {
 		var msg types.ScheduledMessage
 		getErr := s.kv.Get(key, &msg)
 		if getErr != nil {
-			s.logger.Warn("Failed to get individual scheduled message during list operation", "key", key, "error", getErr)
+			s.logger.Warn("Failed to get individual scheduled message during list operation", "key", key, "error_reason", logging.ErrorReason(getErr))
 			getFailedCount++
 			continue
 		}
@@ -131,7 +132,7 @@ func (s *kvStore) ListUserMessageIDs(userID string) ([]string, error) {
 	s.logger.Debug("Calling KV Get for user index", "key", key)
 	err := s.kv.Get(key, &ids)
 	if err != nil {
-		s.logger.Error("Failed to get user message index from KV store", "key", key, "error", err)
+		s.logger.Error("Failed to get user message index from KV store", "key", key, "error_reason", logging.ErrorReason(err))
 		return nil, fmt.Errorf("kv.Get failed for user index key %s: %w", key, err)
 	}
 	s.logger.Debug("Successfully retrieved user message index", "user_id", userID, "key", key, "count", len(ids))
@@ -174,7 +175,7 @@ func (s *kvStore) saveNewScheduledMessage(msg *types.ScheduledMessage) (bool, er
 	s.logger.Debug("Calling KV Set to save scheduled message", "key", key, "message_id", msg.ID)
 	set, err := s.kv.Set(key, msg)
 	if err != nil {
-		s.logger.Error("Failed to set scheduled message in KV store", "key", key, "message_id", msg.ID, "error", err)
+		s.logger.Error("Failed to set scheduled message in KV store", "key", key, "message_id", msg.ID, "error_reason", logging.ErrorReason(err))
 		return false, fmt.Errorf("kv.Set failed for key %s: %w", key, err)
 	}
 	s.logger.Debug("Successfully set scheduled message in KV store", "key", key, "message_id", msg.ID, "set_result", set)
@@ -186,7 +187,7 @@ func (s *kvStore) deleteScheduledMessageByID(msgID string) error {
 	s.logger.Debug("Calling KV Delete for scheduled message", "key", key, "message_id", msgID)
 	err := s.kv.Delete(key)
 	if err != nil {
-		s.logger.Error("Failed to delete scheduled message from KV store", "key", key, "message_id", msgID, "error", err)
+		s.logger.Error("Failed to delete scheduled message from KV store", "key", key, "message_id", msgID, "error_reason", logging.ErrorReason(err))
 		return fmt.Errorf("kv.Delete failed for key %s: %w", key, err)
 	}
 	s.logger.Debug("Successfully deleted scheduled message from KV store", "key", key, "message_id", msgID)
@@ -203,7 +204,7 @@ func (s *kvStore) modifyUserIndex(
 	var ids []string
 	s.logger.Debug("Getting current user index from KV", "key", key)
 	if err := s.kv.Get(key, &ids); err != nil {
-		s.logger.Warn("Failed to get user index", "key", key, "error", err)
+		s.logger.Warn("Failed to get user index", "key", key, "error_reason", logging.ErrorReason(err))
 		return false, fmt.Errorf("kv.Get failed for index key %s: %w", key, err)
 	}
 	s.logger.Debug("Successfully retrieved current user index", "key", key, "count", len(ids))
@@ -218,7 +219,7 @@ func (s *kvStore) modifyUserIndex(
 	s.logger.Debug("Index was modified, calling KV Set to save updated index", "key", key, "new_count", len(newIDs))
 	set, err := s.kv.Set(key, newIDs)
 	if err != nil {
-		s.logger.Error("Failed to set updated user index in KV store", "key", key, "error", err)
+		s.logger.Error("Failed to set updated user index in KV store", "key", key, "error_reason", logging.ErrorReason(err))
 		return false, fmt.Errorf("kv.Set failed for user index key %s: %w", key, err)
 	}
 	s.logger.Debug("Successfully updated user index in KV store", "key", key, "set_result", set)
