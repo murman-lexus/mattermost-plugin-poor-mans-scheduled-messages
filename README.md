@@ -29,6 +29,8 @@ With the plugin installed: `/schedule help`
 
 ..or view the help [here](assets/help.md)
 
+Before each delivery, including **Send**, the plugin checks that the author is active, is still a member of the destination channel, and has permission to read its messages and create posts. Full content-access validation is supported on Mattermost 9.0 and later using `read_channel_content`. Older servers use `read_channel` as a best-effort check; permission changes backported to older release branches are not covered by this guarantee. If access has been revoked or cannot be verified, the message is not published. The bot attempts to DM the author with the reason and original text; **Send** also displays the reason in an ephemeral error. Failed deliveries are removed from the schedule and are not retried automatically.
+
 ## Caveats
 
 You get what you pay for, so...
