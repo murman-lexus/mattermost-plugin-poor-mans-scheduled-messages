@@ -34,6 +34,10 @@
     "send_error": "%s Poruku nije moguće poslati: %v",
     "list_error": "%s Pogreška pri dohvaćanju popisa poruka: %v",
     "prepare_error": "Pogreška pri pripremi poruke: %v, izvorni unos: `%v`",
-    "past_time": "Zakazano vrijeme %s već je prošlo. Odaberite vrijeme u budućnosti."
+    "past_time": "Zakazano vrijeme %s već je prošlo. Odaberite vrijeme u budućnosti.",
+    "delivery_status": "Dostava: **%s** · pokušaji %d/%d",
+    "delivery_reason": "Razlog: %s",
+    "next_check": "Sljedeća provjera: %s",
+    "check_delivery": "Provjeri dostavu"
   }
 }

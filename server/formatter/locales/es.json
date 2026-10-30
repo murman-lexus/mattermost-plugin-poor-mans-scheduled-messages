@@ -34,6 +34,10 @@
     "send_error": "%s No se pudo enviar el mensaje: %v",
     "list_error": "%s Error al obtener la lista de mensajes: %v",
     "prepare_error": "Error al preparar el mensaje: %v, entrada original: `%v`",
-    "past_time": "La fecha programada %s ya ha pasado. Elige una fecha futura."
+    "past_time": "La fecha programada %s ya ha pasado. Elige una fecha futura.",
+    "delivery_status": "Entrega: **%s** · intentos %d/%d",
+    "delivery_reason": "Motivo: %s",
+    "next_check": "Próxima comprobación: %s",
+    "check_delivery": "Comprobar entrega"
   }
 }

@@ -63,7 +63,7 @@ func (p *Plugin) UserDeleteMessage(w http.ResponseWriter, r *http.Request) {
 	p.updateEphemeralPostWithList(userID, req.PostId, req.ChannelId, updatedList)
 	if err != nil {
 		p.logger.Error("Command layer failed to delete message", "user_id", userID, "message_id", msgID, "error", err)
-		http.Error(w, fmt.Sprintf("Failed to delete message: %v", err), http.StatusInternalServerError)
+		http.Error(w, fmt.Sprintf("Failed to delete message: %v", err), operationErrorStatus(err))
 		p.sendDeletionError(userID, req.ChannelId, msgID, err)
 		return
 	}
@@ -92,7 +92,7 @@ func (p *Plugin) UserSendMessage(w http.ResponseWriter, r *http.Request) {
 		p.logger.Error("Command layer failed to validate send", "user_id", userID, "message_id", msgID, "error", err)
 		updatedList := p.Command.BuildEphemeralList(&model.CommandArgs{UserId: userID})
 		p.updateEphemeralPostWithList(userID, req.PostId, req.ChannelId, updatedList)
-		http.Error(w, fmt.Sprintf("Failed to send message: %v", err), http.StatusInternalServerError)
+		http.Error(w, fmt.Sprintf("Failed to send message: %v", err), operationErrorStatus(err))
 		p.sendSendError(userID, req.ChannelId, msgID, err)
 		return
 	}
@@ -106,7 +106,7 @@ func (p *Plugin) UserSendMessage(w http.ResponseWriter, r *http.Request) {
 
 	if sendErr != nil {
 		p.logger.Error("Failed to send message via scheduler", "user_id", userID, "message_id", msgID, "error", sendErr)
-		http.Error(w, fmt.Sprintf("Failed to send message: %v", sendErr), http.StatusInternalServerError)
+		http.Error(w, fmt.Sprintf("Failed to send message: %v", sendErr), operationErrorStatus(sendErr))
 		p.sendSendError(userID, req.ChannelId, msgID, sendErr)
 		return
 	}
@@ -115,6 +115,20 @@ func (p *Plugin) UserSendMessage(w http.ResponseWriter, r *http.Request) {
 	p.sendSendConfirmation(userID, req.ChannelId, msg)
 
 	p.logger.Debug("UserSendMessage request completed successfully", "user_id", userID, "message_id", msgID)
+}
+
+func operationErrorStatus(err error) int {
+	switch {
+	case errors.Is(err, types.ErrMessageNotFound):
+		return http.StatusNotFound
+	case errors.Is(err, types.ErrNotOwner):
+		return http.StatusForbidden
+	case errors.Is(err, types.ErrMessageBusy), errors.Is(err, types.ErrMessageFinal),
+		errors.Is(err, types.ErrLeaseLost), errors.Is(err, types.ErrConflict), errors.Is(err, types.ErrDeliveryUncertain):
+		return http.StatusConflict
+	default:
+		return http.StatusInternalServerError
+	}
 }
 
 func (p *Plugin) buildEphemeralListUpdate(userID, postID, channelID string, updatedList *model.CommandResponse) *model.Post {

@@ -34,6 +34,10 @@
     "send_error": "%s Could not send message: %v",
     "list_error": "%s Error retrieving message list: %v",
     "prepare_error": "Error preparing schedule: %v, Original input: `%v`",
-    "past_time": "scheduled time '%s' is already in the past -- must be in the future when using a specific date"
+    "past_time": "scheduled time '%s' is already in the past -- must be in the future when using a specific date",
+    "delivery_status": "Delivery: **%s** · attempts %d/%d",
+    "delivery_reason": "Reason: %s",
+    "next_check": "Next check: %s",
+    "check_delivery": "Check delivery"
   }
 }

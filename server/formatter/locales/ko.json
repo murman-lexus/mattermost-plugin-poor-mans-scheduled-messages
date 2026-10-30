@@ -34,6 +34,10 @@
     "send_error": "%s 메시지를 보낼 수 없습니다: %v",
     "list_error": "%s 메시지 목록 조회 오류: %v",
     "prepare_error": "메시지 준비 오류: %v, 원본 입력: `%v`",
-    "past_time": "예약 시간 %s은(는) 이미 지났습니다. 미래 시간을 선택하세요."
+    "past_time": "예약 시간 %s은(는) 이미 지났습니다. 미래 시간을 선택하세요.",
+    "delivery_status": "전송: **%s** · 시도 %d/%d",
+    "delivery_reason": "이유: %s",
+    "next_check": "다음 확인: %s",
+    "check_delivery": "전송 확인"
   }
 }

@@ -34,6 +34,10 @@
     "send_error": "%s Không thể gửi tin nhắn: %v",
     "list_error": "%s Lỗi lấy danh sách tin nhắn: %v",
     "prepare_error": "Lỗi chuẩn bị tin nhắn: %v, nội dung nhập ban đầu: `%v`",
-    "past_time": "Thời gian đã lên lịch %s đã qua. Hãy chọn thời gian trong tương lai."
+    "past_time": "Thời gian đã lên lịch %s đã qua. Hãy chọn thời gian trong tương lai.",
+    "delivery_status": "Giao tin: **%s** · số lần thử %d/%d",
+    "delivery_reason": "Lý do: %s",
+    "next_check": "Lần kiểm tra tiếp theo: %s",
+    "check_delivery": "Kiểm tra giao tin"
   }
 }

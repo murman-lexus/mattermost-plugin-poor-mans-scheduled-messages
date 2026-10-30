@@ -34,6 +34,10 @@
     "send_error": "%s メッセージを送信できません：%v",
     "list_error": "%s メッセージ一覧の取得エラー：%v",
     "prepare_error": "メッセージの準備エラー：%v、元の入力：`%v`",
-    "past_time": "予約時刻 %s はすでに過ぎています。未来の時刻を選択してください。"
+    "past_time": "予約時刻 %s はすでに過ぎています。未来の時刻を選択してください。",
+    "delivery_status": "配信：**%s** · 試行 %d/%d",
+    "delivery_reason": "理由：%s",
+    "next_check": "次回の確認：%s",
+    "check_delivery": "配信を確認"
   }
 }

@@ -34,6 +34,10 @@
     "send_error": "%s Nachricht konnte nicht gesendet werden: %v",
     "list_error": "%s Fehler beim Abrufen der Nachrichtenliste: %v",
     "prepare_error": "Fehler beim Vorbereiten der Nachricht: %v, ursprüngliche Eingabe: `%v`",
-    "past_time": "Der geplante Zeitpunkt %s liegt bereits in der Vergangenheit. Wähle einen zukünftigen Zeitpunkt."
+    "past_time": "Der geplante Zeitpunkt %s liegt bereits in der Vergangenheit. Wähle einen zukünftigen Zeitpunkt.",
+    "delivery_status": "Zustellung: **%s** · Versuche %d/%d",
+    "delivery_reason": "Grund: %s",
+    "next_check": "Nächste Prüfung: %s",
+    "check_delivery": "Zustellung prüfen"
   }
 }

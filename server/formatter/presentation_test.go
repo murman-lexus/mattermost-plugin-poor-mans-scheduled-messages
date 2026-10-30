@@ -38,7 +38,7 @@ func TestDateTimeUsesLocaleAndPersonalClockIndependently(t *testing.T) {
 func TestAllMattermostCatalogsAreComplete(t *testing.T) {
 	// Keep in sync with webapp/channels/src/i18n/i18n.ts in Mattermost.
 	locales := []string{"de", "en", "en-AU", "es", "fr", "it", "hu", "nl", "pl", "pt-BR", "ro", "sv", "vi", "tr", "bg", "ru", "uk", "fa", "ko", "zh-CN", "zh-TW", "ja", "da", "cs", "hr", "lt", "nb-NO", "pt", "fi"}
-	verbs := regexp.MustCompile(`%[sv]`)
+	verbs := regexp.MustCompile(`%[sdv]`)
 	require.Len(t, catalogs, len(locales))
 	for _, locale := range locales {
 		t.Run(locale, func(t *testing.T) {

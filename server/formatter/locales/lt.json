@@ -34,6 +34,10 @@
     "send_error": "%s Nepavyko išsiųsti žinutės: %v",
     "list_error": "%s Klaida gaunant žinučių sąrašą: %v",
     "prepare_error": "Klaida ruošiant žinutę: %v, pradinė įvestis: `%v`",
-    "past_time": "Suplanuotas laikas %s jau praėjo. Pasirinkite laiką ateityje."
+    "past_time": "Suplanuotas laikas %s jau praėjo. Pasirinkite laiką ateityje.",
+    "delivery_status": "Pristatymas: **%s** · bandymai %d/%d",
+    "delivery_reason": "Priežastis: %s",
+    "next_check": "Kitas patikrinimas: %s",
+    "check_delivery": "Tikrinti pristatymą"
   }
 }

@@ -34,6 +34,10 @@
     "send_error": "%s Kunde inte skicka meddelandet: %v",
     "list_error": "%s Fel vid hämtning av meddelandelistan: %v",
     "prepare_error": "Fel vid förberedelse av meddelandet: %v, ursprunglig inmatning: `%v`",
-    "past_time": "Den planerade tidpunkten %s har redan passerat. Välj en framtida tidpunkt."
+    "past_time": "Den planerade tidpunkten %s har redan passerat. Välj en framtida tidpunkt.",
+    "delivery_status": "Leverans: **%s** · försök %d/%d",
+    "delivery_reason": "Orsak: %s",
+    "next_check": "Nästa kontroll: %s",
+    "check_delivery": "Kontrollera leverans"
   }
 }

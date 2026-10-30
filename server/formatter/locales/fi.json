@@ -34,6 +34,10 @@
     "send_error": "%s Viestiä ei voitu lähettää: %v",
     "list_error": "%s Virhe viestiluettelon hakemisessa: %v",
     "prepare_error": "Virhe viestin valmistelussa: %v, alkuperäinen syöte: `%v`",
-    "past_time": "Ajastettu aika %s on jo mennyt. Valitse tuleva ajankohta."
+    "past_time": "Ajastettu aika %s on jo mennyt. Valitse tuleva ajankohta.",
+    "delivery_status": "Toimitus: **%s** · yritykset %d/%d",
+    "delivery_reason": "Syy: %s",
+    "next_check": "Seuraava tarkistus: %s",
+    "check_delivery": "Tarkista toimitus"
   }
 }

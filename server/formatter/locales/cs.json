@@ -34,6 +34,10 @@
     "send_error": "%s Zprávu nelze odeslat: %v",
     "list_error": "%s Chyba při načítání seznamu zpráv: %v",
     "prepare_error": "Chyba při přípravě zprávy: %v, původní vstup: `%v`",
-    "past_time": "Naplánovaný čas %s již uplynul. Vyberte čas v budoucnosti."
+    "past_time": "Naplánovaný čas %s již uplynul. Vyberte čas v budoucnosti.",
+    "delivery_status": "Doručení: **%s** · pokusy %d/%d",
+    "delivery_reason": "Důvod: %s",
+    "next_check": "Další kontrola: %s",
+    "check_delivery": "Zkontrolovat doručení"
   }
 }

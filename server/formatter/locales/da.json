@@ -34,6 +34,10 @@
     "send_error": "%s Kunne ikke sende beskeden: %v",
     "list_error": "%s Fejl ved hentning af beskedlisten: %v",
     "prepare_error": "Fejl ved forberedelse af beskeden: %v, oprindelig indtastning: `%v`",
-    "past_time": "Det planlagte tidspunkt %s er allerede passeret. Vælg et tidspunkt i fremtiden."
+    "past_time": "Det planlagte tidspunkt %s er allerede passeret. Vælg et tidspunkt i fremtiden.",
+    "delivery_status": "Levering: **%s** · forsøg %d/%d",
+    "delivery_reason": "Årsag: %s",
+    "next_check": "Næste kontrol: %s",
+    "check_delivery": "Kontrollér levering"
   }
 }

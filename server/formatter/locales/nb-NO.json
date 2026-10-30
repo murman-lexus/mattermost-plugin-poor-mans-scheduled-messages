@@ -34,6 +34,10 @@
     "send_error": "%s Kunne ikke sende meldingen: %v",
     "list_error": "%s Feil ved henting av meldingslisten: %v",
     "prepare_error": "Feil ved klargjøring av meldingen: %v, opprinnelig inndata: `%v`",
-    "past_time": "Det planlagte tidspunktet %s er allerede passert. Velg et tidspunkt i fremtiden."
+    "past_time": "Det planlagte tidspunktet %s er allerede passert. Velg et tidspunkt i fremtiden.",
+    "delivery_status": "Levering: **%s** · forsøk %d/%d",
+    "delivery_reason": "Årsak: %s",
+    "next_check": "Neste kontroll: %s",
+    "check_delivery": "Kontroller levering"
   }
 }

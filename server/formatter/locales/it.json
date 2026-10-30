@@ -34,6 +34,10 @@
     "send_error": "%s Impossibile inviare il messaggio: %v",
     "list_error": "%s Errore nel recupero dell’elenco dei messaggi: %v",
     "prepare_error": "Errore nella preparazione del messaggio: %v, input originale: `%v`",
-    "past_time": "La data programmata %s è già passata. Scegli una data futura."
+    "past_time": "La data programmata %s è già passata. Scegli una data futura.",
+    "delivery_status": "Consegna: **%s** · tentativi %d/%d",
+    "delivery_reason": "Motivo: %s",
+    "next_check": "Prossima verifica: %s",
+    "check_delivery": "Verifica consegna"
   }
 }

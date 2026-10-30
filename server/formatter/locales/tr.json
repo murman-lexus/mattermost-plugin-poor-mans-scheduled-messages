@@ -34,6 +34,10 @@
     "send_error": "%s Mesaj gönderilemedi: %v",
     "list_error": "%s Mesaj listesi alınamadı: %v",
     "prepare_error": "Mesaj hazırlama hatası: %v, asıl girdi: `%v`",
-    "past_time": "Planlanan zaman %s geçmişte kalmış. Gelecekte bir zaman seçin."
+    "past_time": "Planlanan zaman %s geçmişte kalmış. Gelecekte bir zaman seçin.",
+    "delivery_status": "Teslimat: **%s** · denemeler %d/%d",
+    "delivery_reason": "Neden: %s",
+    "next_check": "Sonraki kontrol: %s",
+    "check_delivery": "Teslimatı kontrol et"
   }
 }

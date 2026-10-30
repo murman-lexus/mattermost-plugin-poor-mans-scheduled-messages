@@ -34,6 +34,10 @@
     "send_error": "%s 無法傳送訊息：%v",
     "list_error": "%s 取得訊息清單時發生錯誤：%v",
     "prepare_error": "準備訊息時發生錯誤：%v，原始輸入：`%v`",
-    "past_time": "排定的時間 %s 已過。請選擇未來的時間。"
+    "past_time": "排定的時間 %s 已過。請選擇未來的時間。",
+    "delivery_status": "傳送：**%s** · 嘗試 %d/%d",
+    "delivery_reason": "原因：%s",
+    "next_check": "下次檢查：%s",
+    "check_delivery": "檢查傳送"
   }
 }

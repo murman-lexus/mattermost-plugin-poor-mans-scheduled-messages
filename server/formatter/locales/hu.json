@@ -34,6 +34,10 @@
     "send_error": "%s Az üzenet nem küldhető el: %v",
     "list_error": "%s Hiba az üzenetlista lekérésekor: %v",
     "prepare_error": "Hiba az üzenet előkészítésekor: %v, eredeti bevitel: `%v`",
-    "past_time": "A megadott időpont (%s) már elmúlt. Válassz jövőbeli időpontot."
+    "past_time": "A megadott időpont (%s) már elmúlt. Válassz jövőbeli időpontot.",
+    "delivery_status": "Kézbesítés: **%s** · kísérletek %d/%d",
+    "delivery_reason": "Ok: %s",
+    "next_check": "Következő ellenőrzés: %s",
+    "check_delivery": "Kézbesítés ellenőrzése"
   }
 }

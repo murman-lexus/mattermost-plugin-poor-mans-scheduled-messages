@@ -34,6 +34,10 @@
     "send_error": "%s Bericht kon niet worden verzonden: %v",
     "list_error": "%s Fout bij het ophalen van de berichtenlijst: %v",
     "prepare_error": "Fout bij het voorbereiden van het bericht: %v, oorspronkelijke invoer: `%v`",
-    "past_time": "Het geplande tijdstip %s is al voorbij. Kies een toekomstig tijdstip."
+    "past_time": "Het geplande tijdstip %s is al voorbij. Kies een toekomstig tijdstip.",
+    "delivery_status": "Bezorging: **%s** · pogingen %d/%d",
+    "delivery_reason": "Reden: %s",
+    "next_check": "Volgende controle: %s",
+    "check_delivery": "Bezorging controleren"
   }
 }

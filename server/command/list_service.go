@@ -1,6 +1,7 @@
 package command
 
 import (
+	"errors"
 	"sort"
 	"time"
 
@@ -64,11 +65,14 @@ func (l *ListService) loadMessages(userID string) ([]*types.ScheduledMessage, er
 		l.logger.Debug("Loading scheduled message details", "user_id", userID, "message_id", id)
 		msg, err := l.store.GetScheduledMessage(id)
 		if err != nil {
+			if errors.Is(err, types.ErrMessageNotFound) {
+				_ = l.store.CleanupMessageFromUserIndex(userID, id)
+			}
 			// Log the error but continue trying to load other messages
 			l.logger.Error("Failed to get scheduled message details", "user_id", userID, "message_id", id, "error", err)
 			continue
 		}
-		if msg == nil || msg.ID == "" {
+		if msg == nil || msg.ID == "" || msg.Terminal() {
 			l.logger.Warn("Scheduled message referenced in user index not found, cleaning up", "user_id", userID, "message_id", id)
 			// Attempt cleanup, log if cleanup fails but continue processing
 			if cleanupErr := l.store.CleanupMessageFromUserIndex(userID, id); cleanupErr != nil {
@@ -113,7 +117,26 @@ func (l *ListService) buildAttachments(msgs []*types.ScheduledMessage, r formatt
 			m.MessageContent,
 			m.RootID != "",
 		)
-		attachments = append(attachments, createAttachment(header, m.ID, r))
+		if m.State != "" {
+			header += "\n\n" + r.Text("delivery_status", m.State, m.Attempts, types.MaxDeliveryAttempts)
+			if m.LastReason != "" {
+				header += "\n" + r.Text("delivery_reason", m.LastReason)
+			}
+			if !m.NextAttemptAt.IsZero() {
+				header += "\n" + r.Text("next_check", r.DateTime(m.NextAttemptAt.In(loc)))
+			}
+		}
+		attachment := createAttachment(header, m.ID, r)
+		switch m.DeliveryState() {
+		case types.StateSending, types.StateReconciling:
+			attachment.Actions = nil
+		case types.StateUncertain:
+			attachment.Actions = attachment.Actions[:1]
+			attachment.Actions[0].Name = r.Text("check_delivery")
+		case types.StateCreating, types.StateProcessing:
+			attachment.Actions = attachment.Actions[1:]
+		}
+		attachments = append(attachments, attachment)
 		l.logger.Debug("Created attachment for message", "message_id", m.ID)
 	}
 

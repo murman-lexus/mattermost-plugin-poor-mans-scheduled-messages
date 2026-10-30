@@ -34,6 +34,10 @@
     "send_error": "%s Nie udało się wysłać wiadomości: %v",
     "list_error": "%s Błąd pobierania listy wiadomości: %v",
     "prepare_error": "Błąd przygotowania wiadomości: %v, oryginalne dane: `%v`",
-    "past_time": "Zaplanowany termin %s już minął. Wybierz termin w przyszłości."
+    "past_time": "Zaplanowany termin %s już minął. Wybierz termin w przyszłości.",
+    "delivery_status": "Dostarczenie: **%s** · próby %d/%d",
+    "delivery_reason": "Powód: %s",
+    "next_check": "Następne sprawdzenie: %s",
+    "check_delivery": "Sprawdź dostarczenie"
   }
 }

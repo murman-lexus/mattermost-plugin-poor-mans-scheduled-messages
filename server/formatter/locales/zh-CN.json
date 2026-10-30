@@ -34,6 +34,10 @@
     "send_error": "%s 无法发送消息：%v",
     "list_error": "%s 获取消息列表出错：%v",
     "prepare_error": "准备消息出错：%v，原始输入：`%v`",
-    "past_time": "安排的时间 %s 已过。请选择未来的时间。"
+    "past_time": "安排的时间 %s 已过。请选择未来的时间。",
+    "delivery_status": "投递：**%s** · 尝试 %d/%d",
+    "delivery_reason": "原因：%s",
+    "next_check": "下次检查：%s",
+    "check_delivery": "检查投递"
   }
 }

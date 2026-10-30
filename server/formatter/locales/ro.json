@@ -34,6 +34,10 @@
     "send_error": "%s Mesajul nu a putut fi trimis: %v",
     "list_error": "%s Eroare la obținerea listei de mesaje: %v",
     "prepare_error": "Eroare la pregătirea mesajului: %v, intrare originală: `%v`",
-    "past_time": "Data programată %s a trecut deja. Alege o dată viitoare."
+    "past_time": "Data programată %s a trecut deja. Alege o dată viitoare.",
+    "delivery_status": "Livrare: **%s** · încercări %d/%d",
+    "delivery_reason": "Motiv: %s",
+    "next_check": "Următoarea verificare: %s",
+    "check_delivery": "Verifică livrarea"
   }
 }
