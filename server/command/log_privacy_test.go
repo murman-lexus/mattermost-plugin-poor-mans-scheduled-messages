@@ -51,10 +51,10 @@ func TestSchedulingLogsOmitConversationContent(t *testing.T) {
 				})
 				info := &ports.ChannelInfo{ChannelID: "channel"}
 				ch.EXPECT().GetInfoOrUnknown("channel").Return(info)
-				ch.EXPECT().MakeChannelLink(info).Return("destination")
+				ch.EXPECT().MakeChannelLink(info, gomock.Any()).Return("destination")
 			}
 			clk := testutil.FakeClock{NowTime: time.Date(2026, 10, 30, 9, 0, 0, 0, time.UTC)}
-			svc := NewScheduleService(logger, user, st, ch, clk, constants.MaxUserMessages)
+			svc := NewScheduleService(logger, user, st, ch, clk, constants.MaxUserMessages, nil)
 			h := NewHandler(logger, nil, user, st, ch, nil, svc, "help")
 			args := &model.CommandArgs{UserId: "author", ChannelId: "channel", Command: "/schedule " + text}
 			resp, err := h.Execute(args)
