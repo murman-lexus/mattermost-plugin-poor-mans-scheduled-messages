@@ -86,6 +86,8 @@ and [post creation](https://github.com/mattermost/mattermost/blob/master/server/
 
 ## Caveats
 
+Plugin logs at every level, including DEBUG and ERROR, omit message bodies, full commands, request context, and formatted user responses. Diagnostics retain job and other identifiers, operation metadata, and safe error categories or HTTP status codes. Raw error messages and API error details are omitted because they can contain submitted message content.
+
 You get what you pay for, so...
 
 1. **No attachments:** You can't attach anything to a scheduled message *(slash commands don't pass attachment data as far as I can tell)*.

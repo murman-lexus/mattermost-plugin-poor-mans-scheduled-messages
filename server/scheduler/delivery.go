@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/apartmentlines/mattermost-plugin-poor-mans-scheduled-messages/internal/logging"
 	"github.com/apartmentlines/mattermost-plugin-poor-mans-scheduled-messages/server/formatter"
 	"github.com/apartmentlines/mattermost-plugin-poor-mans-scheduled-messages/server/types"
 	"github.com/mattermost/mattermost/server/public/model"
@@ -57,7 +58,7 @@ func (s *Scheduler) send(identity *types.ScheduledMessage, manual bool) error {
 		return fmt.Errorf("could not persist delivery result; the job is retained for recovery: %w", err)
 	}
 	if postErr != nil {
-		s.logger.Warn("Scheduled delivery failed", "message_id", claim.ID, "state", claim.State, "reason", claim.LastReason)
+		s.logger.Warn("Scheduled delivery failed", "message_id", claim.ID, "state", claim.State, "failure_category", claim.LastReason, "error_reason", logging.ErrorReason(postErr))
 		if claim.State == types.StateFailed || claim.State == types.StateUncertain {
 			s.dmUserOnFailedMessage(claim, postErr)
 		}
@@ -140,6 +141,6 @@ func (s *Scheduler) dmUserOnFailedMessage(msg *types.ScheduledMessage, postErr e
 	channelInfo := s.linker.MakeChannelLink(s.linker.GetInfoOrUnknown(msg.ChannelID), r.DisplaySettings)
 	message := r.FormatSchedulerFailure(channelInfo, postErr, msg.MessageContent)
 	if err := s.poster.DM(s.botID, msg.UserID, &model.Post{Message: message}); err != nil {
-		s.logger.Error("Cannot notify author of delivery failure", "message_id", msg.ID, "error_type", fmt.Sprintf("%T", err))
+		s.logger.Error("Cannot notify author of delivery failure", "message_id", msg.ID, "error_reason", logging.ErrorReason(err))
 	}
 }

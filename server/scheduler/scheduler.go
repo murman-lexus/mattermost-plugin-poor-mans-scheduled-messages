@@ -6,6 +6,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/apartmentlines/mattermost-plugin-poor-mans-scheduled-messages/internal/logging"
 	"github.com/apartmentlines/mattermost-plugin-poor-mans-scheduled-messages/internal/ports"
 	"github.com/apartmentlines/mattermost-plugin-poor-mans-scheduled-messages/server/types"
 )
@@ -103,7 +104,7 @@ func (s *Scheduler) processDueMessages() {
 
 	messages, err := s.getAllScheduledMessages()
 	if err != nil {
-		s.logger.Error("Failed to list scheduled messages", "error", err)
+		s.logger.Error("Failed to list scheduled messages", "error_reason", logging.ErrorReason(err))
 		return
 	}
 	s.logger.Debug("Retrieved scheduled messages", "count", len(messages))

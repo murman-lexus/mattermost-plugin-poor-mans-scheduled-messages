@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/apartmentlines/mattermost-plugin-poor-mans-scheduled-messages/internal/logging"
 	"github.com/apartmentlines/mattermost-plugin-poor-mans-scheduled-messages/internal/ports"
 	"github.com/apartmentlines/mattermost-plugin-poor-mans-scheduled-messages/server/constants"
 	"github.com/apartmentlines/mattermost-plugin-poor-mans-scheduled-messages/server/types"
@@ -186,7 +187,7 @@ func (s *kvStore) ListScheduledMessages() ([]*types.ScheduledMessage, error) {
 			}
 			msg, err := s.GetScheduledMessage(strings.TrimPrefix(key, constants.SchedPrefix))
 			if err != nil {
-				s.logger.Warn("Cannot read scheduled job", "key", key, "error_type", fmt.Sprintf("%T", err))
+				s.logger.Warn("Cannot read scheduled job", "key", key, "error_reason", logging.ErrorReason(err))
 				continue
 			}
 			if msg.Terminal() {
@@ -196,7 +197,7 @@ func (s *kvStore) ListScheduledMessages() ([]*types.ScheduledMessage, error) {
 			if msg.State == types.StateCreating {
 				msg, err = s.activateCreation(msg.UserID, msg.ID)
 				if err != nil {
-					s.logger.Warn("Cannot complete job creation", "key", key, "error_type", fmt.Sprintf("%T", err))
+					s.logger.Warn("Cannot complete job creation", "key", key, "error_reason", logging.ErrorReason(err))
 					continue
 				}
 				if msg.Terminal() {
@@ -206,7 +207,7 @@ func (s *kvStore) ListScheduledMessages() ([]*types.ScheduledMessage, error) {
 			}
 			// Repair index entries lost to a partial creation or orphan cleanup.
 			if err := s.modifyUserIndex(msg.UserID, msg.ID, indexRepair); err != nil {
-				s.logger.Warn("Cannot repair job index", "message_id", msg.ID, "error_type", fmt.Sprintf("%T", err))
+				s.logger.Warn("Cannot repair job index", "message_id", msg.ID, "error_reason", logging.ErrorReason(err))
 			}
 			messages = append(messages, msg)
 		}
@@ -365,7 +366,7 @@ func (s *kvStore) update(msgID string, change func(*types.ScheduledMessage) erro
 func (s *kvStore) cleanupTerminal(msg *types.ScheduledMessage) {
 	if err := s.modifyUserIndex(msg.UserID, msg.ID, indexRemove); err != nil {
 		// The terminal receipt is committed. The next scan retries index cleanup.
-		s.logger.Warn("Cannot clean up terminal job index", "message_id", msg.ID, "error_type", fmt.Sprintf("%T", err))
+		s.logger.Warn("Cannot clean up terminal job index", "message_id", msg.ID, "error_reason", logging.ErrorReason(err))
 	}
 }
 
