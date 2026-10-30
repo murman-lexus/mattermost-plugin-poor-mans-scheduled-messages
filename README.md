@@ -29,6 +29,14 @@ With the plugin installed: `/schedule help`
 
 ..or view the help [here](assets/help.md)
 
+### Language and time display
+
+Dates, month names, confirmations, list labels, and action buttons follow the user's Mattermost interface language. The clock format follows the user's personal time preference independently of language: `13:10` for 24-hour time or `1:10 PM` for 12-hour time. The `AM` and `PM` markers remain in English for every language.
+
+Current preferences are read when a response is generated, including when listing existing scheduled messages. Dates use the time zone saved with the scheduled message. If settings cannot be loaded, the plugin falls back to the server's default client language (or English) and a 12-hour clock for the unavailable settings.
+
+Error localization is partial: surrounding labels are translated, while some validation reasons (such as message count and size limits), parser details, and external technical errors remain in English. A response can therefore contain both translated and English text. Command syntax, autocomplete descriptions, and the help document also remain in English.
+
 ## Caveats
 
 You get what you pay for, so...

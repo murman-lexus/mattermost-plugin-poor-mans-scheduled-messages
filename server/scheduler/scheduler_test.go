@@ -29,7 +29,7 @@ func TestProcessDueMessages_PostSuccess(t *testing.T) {
 
 	st := store.NewKVStore(testutil.FakeLogger{}, mockKV, mm.NewListMatchingService(), constants.MaxUserMessages)
 	clk := testutil.FakeClock{NowTime: time.Now().UTC()}
-	s := New(testutil.FakeLogger{}, mockPoster, st, mockChannel, "bot", clk)
+	s := New(testutil.FakeLogger{}, mockPoster, st, mockChannel, "bot", clk, nil)
 
 	now := clk.Now()
 	msg := &types.ScheduledMessage{
@@ -68,7 +68,7 @@ func TestProcessDueMessages_PostFailure(t *testing.T) {
 
 	st := store.NewKVStore(testutil.FakeLogger{}, mockKV, mm.NewListMatchingService(), constants.MaxUserMessages)
 	clk := testutil.FakeClock{NowTime: time.Now().UTC()}
-	s := New(testutil.FakeLogger{}, mockPoster, st, mockChannel, "bot", clk)
+	s := New(testutil.FakeLogger{}, mockPoster, st, mockChannel, "bot", clk, nil)
 
 	now := clk.Now()
 	msg := &types.ScheduledMessage{
@@ -91,7 +91,7 @@ func TestProcessDueMessages_PostFailure(t *testing.T) {
 	mockKV.EXPECT().Delete(msgKey).Return(nil)
 	mockPoster.EXPECT().CreatePost(gomock.Any()).Return(postErr)
 	mockChannel.EXPECT().GetInfoOrUnknown(msg.ChannelID).Return(channelInfo)
-	mockChannel.EXPECT().MakeChannelLink(channelInfo).Return("in channel: some-link")
+	mockChannel.EXPECT().MakeChannelLink(channelInfo, gomock.Any()).Return("in channel: some-link")
 	mockPoster.EXPECT().DM("bot", msg.UserID, gomock.Any()).Return(nil)
 
 	s.processDueMessages()
@@ -107,7 +107,7 @@ func TestProcessDueMessages_NotDueYet(t *testing.T) {
 
 	st := store.NewKVStore(testutil.FakeLogger{}, mockKV, mm.NewListMatchingService(), constants.MaxUserMessages)
 	clk := testutil.FakeClock{NowTime: time.Now().UTC()}
-	s := New(testutil.FakeLogger{}, mockPoster, st, mockChannel, "bot", clk)
+	s := New(testutil.FakeLogger{}, mockPoster, st, mockChannel, "bot", clk, nil)
 
 	now := clk.Now()
 	msg := &types.ScheduledMessage{
@@ -136,7 +136,7 @@ func TestProcessDueMessages_ListError(t *testing.T) {
 
 	st := store.NewKVStore(testutil.FakeLogger{}, mockKV, mm.NewListMatchingService(), constants.MaxUserMessages)
 	clk := testutil.FakeClock{NowTime: time.Now().UTC()}
-	s := New(testutil.FakeLogger{}, mockPoster, st, mockChannel, "bot", clk)
+	s := New(testutil.FakeLogger{}, mockPoster, st, mockChannel, "bot", clk, nil)
 
 	mockKV.EXPECT().ListKeys(0, constants.MaxFetchScheduledMessages, gomock.Any()).Return(nil, errors.New("boom"))
 
@@ -153,7 +153,7 @@ func TestScheduler_StartAndStop(t *testing.T) {
 
 	st := store.NewKVStore(testutil.FakeLogger{}, mockKV, mm.NewListMatchingService(), constants.MaxUserMessages)
 	clk := testutil.FakeClock{NowTime: time.Date(2023, 1, 1, 10, 30, 59, 950*1000*1000, time.UTC)}
-	s := New(testutil.FakeLogger{}, mockPoster, st, mockChannel, "bot", clk)
+	s := New(testutil.FakeLogger{}, mockPoster, st, mockChannel, "bot", clk, nil)
 
 	now := clk.Now()
 	msg := &types.ScheduledMessage{
@@ -196,7 +196,7 @@ func TestProcessDueMessages_LoadMessageError(t *testing.T) {
 
 	st := store.NewKVStore(testutil.FakeLogger{}, mockKV, mm.NewListMatchingService(), constants.MaxUserMessages)
 	clk := testutil.FakeClock{NowTime: time.Now().UTC()}
-	s := New(testutil.FakeLogger{}, mockPoster, st, mockChannel, "bot", clk)
+	s := New(testutil.FakeLogger{}, mockPoster, st, mockChannel, "bot", clk, nil)
 
 	msgID := "uuid-5"
 	msgKey := testutil.SchedKey(msgID)
@@ -222,7 +222,7 @@ func TestProcessDueMessages_DeleteScheduleError(t *testing.T) {
 
 	st := store.NewKVStore(testutil.FakeLogger{}, mockKV, mm.NewListMatchingService(), constants.MaxUserMessages)
 	clk := testutil.FakeClock{NowTime: time.Now().UTC()}
-	s := New(testutil.FakeLogger{}, mockPoster, st, mockChannel, "bot", clk)
+	s := New(testutil.FakeLogger{}, mockPoster, st, mockChannel, "bot", clk, nil)
 
 	now := clk.Now()
 	msg := &types.ScheduledMessage{
@@ -248,7 +248,7 @@ func TestProcessDueMessages_DMError(t *testing.T) {
 
 	st := store.NewKVStore(testutil.FakeLogger{}, mockKV, mm.NewListMatchingService(), constants.MaxUserMessages)
 	clk := testutil.FakeClock{NowTime: time.Now().UTC()}
-	s := New(testutil.FakeLogger{}, mockPoster, st, mockChannel, "bot", clk)
+	s := New(testutil.FakeLogger{}, mockPoster, st, mockChannel, "bot", clk, nil)
 
 	now := clk.Now()
 	msg := &types.ScheduledMessage{
@@ -268,7 +268,7 @@ func TestProcessDueMessages_DMError(t *testing.T) {
 	mockKV.EXPECT().Delete(msgKey).Return(nil)
 	mockPoster.EXPECT().CreatePost(gomock.Any()).Return(postErr)
 	mockChannel.EXPECT().GetInfoOrUnknown(msg.ChannelID).Return(channelInfo)
-	mockChannel.EXPECT().MakeChannelLink(channelInfo).Return("in channel: some-link")
+	mockChannel.EXPECT().MakeChannelLink(channelInfo, gomock.Any()).Return("in channel: some-link")
 	mockPoster.EXPECT().DM("bot", msg.UserID, gomock.Any()).Return(dmErr)
 
 	s.processDueMessages()
@@ -284,7 +284,7 @@ func TestProcessDueMessages_EmptyIDMap(t *testing.T) {
 
 	st := store.NewKVStore(testutil.FakeLogger{}, mockKV, mm.NewListMatchingService(), constants.MaxUserMessages)
 	clk := testutil.FakeClock{NowTime: time.Now().UTC()}
-	s := New(testutil.FakeLogger{}, mockPoster, st, mockChannel, "bot", clk)
+	s := New(testutil.FakeLogger{}, mockPoster, st, mockChannel, "bot", clk, nil)
 
 	mockKV.EXPECT().ListKeys(0, constants.MaxFetchScheduledMessages, gomock.Any()).Return([]string{}, nil)
 
@@ -300,7 +300,7 @@ func TestSendNow_Success(t *testing.T) {
 	mockChannel := mock.NewMockChannelService(ctrl)
 
 	clk := testutil.FakeClock{NowTime: time.Now().UTC()}
-	s := New(testutil.FakeLogger{}, mockPoster, mockStore, mockChannel, "bot", clk)
+	s := New(testutil.FakeLogger{}, mockPoster, mockStore, mockChannel, "bot", clk, nil)
 
 	msg := &types.ScheduledMessage{
 		ID:             "uuid-send-1",
@@ -334,7 +334,7 @@ func TestSendNow_DeleteError(t *testing.T) {
 	mockChannel := mock.NewMockChannelService(ctrl)
 
 	clk := testutil.FakeClock{NowTime: time.Now().UTC()}
-	s := New(testutil.FakeLogger{}, mockPoster, mockStore, mockChannel, "bot", clk)
+	s := New(testutil.FakeLogger{}, mockPoster, mockStore, mockChannel, "bot", clk, nil)
 
 	msg := &types.ScheduledMessage{
 		ID:             "uuid-send-2",
@@ -364,7 +364,7 @@ func TestSendNow_PostError(t *testing.T) {
 	mockChannel := mock.NewMockChannelService(ctrl)
 
 	clk := testutil.FakeClock{NowTime: time.Now().UTC()}
-	s := New(testutil.FakeLogger{}, mockPoster, mockStore, mockChannel, "bot", clk)
+	s := New(testutil.FakeLogger{}, mockPoster, mockStore, mockChannel, "bot", clk, nil)
 
 	msg := &types.ScheduledMessage{
 		ID:             "uuid-send-3",
@@ -381,7 +381,7 @@ func TestSendNow_PostError(t *testing.T) {
 	mockStore.EXPECT().DeleteScheduledMessage(msg.UserID, msg.ID).Return(nil)
 	mockPoster.EXPECT().CreatePost(gomock.Any()).Return(postErr)
 	mockChannel.EXPECT().GetInfoOrUnknown(msg.ChannelID).Return(channelInfo)
-	mockChannel.EXPECT().MakeChannelLink(channelInfo).Return("in channel: some-link")
+	mockChannel.EXPECT().MakeChannelLink(channelInfo, gomock.Any()).Return("in channel: some-link")
 	mockPoster.EXPECT().DM("bot", msg.UserID, gomock.Any()).Return(nil)
 
 	err := s.SendNow(msg)
