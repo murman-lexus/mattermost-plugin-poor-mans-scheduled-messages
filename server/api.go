@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/apartmentlines/mattermost-plugin-poor-mans-scheduled-messages/server/constants"
+	"github.com/apartmentlines/mattermost-plugin-poor-mans-scheduled-messages/server/formatter"
 	"github.com/apartmentlines/mattermost-plugin-poor-mans-scheduled-messages/server/types"
 	"github.com/gorilla/mux"
 	"github.com/mattermost/mattermost/server/public/model"
@@ -144,7 +145,7 @@ func (p *Plugin) buildEphemeralListUpdate(userID, postID, channelID string, upda
 	attachmentsSlice, ok := attachmentsValue.([]*model.MessageAttachment)
 	if !ok || len(attachmentsSlice) == 0 {
 		p.logger.Debug("Attachments is empty, setting EmptyListMessage", "user_id", userID, "post_id", postID)
-		post.Message = constants.EmptyListMessage
+		post.Message = formatter.ForUser(p.presentation, userID).Text("empty_list")
 	}
 	return post
 }
@@ -201,19 +202,20 @@ func (p *Plugin) updateEphemeralPostWithList(userID string, postID string, chann
 }
 
 func (p *Plugin) sendDeletionConfirmation(userID string, channelID string, deletedMsg *types.ScheduledMessage) {
+	r := formatter.ForUser(p.presentation, userID)
 	p.logger.Debug("Preparing deletion confirmation message", "user_id", userID, "channel_id", channelID, "message_id", deletedMsg.ID, "timezone", deletedMsg.Timezone)
 	loc, err := time.LoadLocation(deletedMsg.Timezone)
 	if err != nil {
 		p.logger.Warn("Failed to load timezone for confirmation message, falling back to UTC", "user_id", userID, "message_id", deletedMsg.ID, "timezone", deletedMsg.Timezone, "error", err)
 		loc = time.UTC
 	}
-	humanTime := deletedMsg.PostAt.In(loc).Format(constants.TimeLayout)
+	humanTime := r.DateTime(deletedMsg.PostAt.In(loc))
 	p.logger.Debug("Formatted time for confirmation message", "user_id", userID, "message_id", deletedMsg.ID, "formatted_time", humanTime, "location", loc.String())
-	channelInfo := p.Channel.MakeChannelLink(p.Channel.GetInfoOrUnknown(deletedMsg.ChannelID))
+	channelInfo := p.Channel.MakeChannelLink(p.Channel.GetInfoOrUnknown(deletedMsg.ChannelID), r.DisplaySettings)
 	confirmation := &model.Post{
 		UserId:    userID,
 		ChannelId: channelID,
-		Message:   fmt.Sprintf("%s Message scheduled for **%s** %s has been deleted.", constants.EmojiSuccess, humanTime, channelInfo),
+		Message:   r.Text("deleted", constants.EmojiSuccess, humanTime, channelInfo),
 	}
 	p.logger.Debug("Sending ephemeral deletion confirmation post", "user_id", userID, "channel_id", channelID, "message_id", deletedMsg.ID)
 	p.poster.SendEphemeralPost(userID, confirmation)
@@ -221,11 +223,12 @@ func (p *Plugin) sendDeletionConfirmation(userID string, channelID string, delet
 }
 
 func (p *Plugin) sendDeletionError(userID string, channelID string, msgID string, err error) {
+	r := formatter.ForUser(p.presentation, userID)
 	p.logger.Debug("Preparing deletion error message", "user_id", userID, "channel_id", channelID, "message_id", msgID, "error", err)
 	alert := &model.Post{
 		UserId:    userID,
 		ChannelId: channelID,
-		Message:   fmt.Sprintf("%s Could not delete message: %v", constants.EmojiError, err),
+		Message:   r.Text("delete_error", constants.EmojiError, err),
 	}
 	p.logger.Debug("Sending ephemeral deletion confirmation post", "user_id", userID, "channel_id", channelID, "message_id", msgID)
 	p.poster.SendEphemeralPost(userID, alert)
@@ -233,19 +236,20 @@ func (p *Plugin) sendDeletionError(userID string, channelID string, msgID string
 }
 
 func (p *Plugin) sendSendConfirmation(userID string, channelID string, msg *types.ScheduledMessage) {
+	r := formatter.ForUser(p.presentation, userID)
 	p.logger.Debug("Preparing send confirmation message", "user_id", userID, "channel_id", channelID, "message_id", msg.ID, "timezone", msg.Timezone)
 	loc, err := time.LoadLocation(msg.Timezone)
 	if err != nil {
 		p.logger.Warn("Failed to load timezone for confirmation message, falling back to UTC", "user_id", userID, "message_id", msg.ID, "timezone", msg.Timezone, "error", err)
 		loc = time.UTC
 	}
-	humanTime := msg.PostAt.In(loc).Format(constants.TimeLayout)
+	humanTime := r.DateTime(msg.PostAt.In(loc))
 	p.logger.Debug("Formatted time for confirmation message", "user_id", userID, "message_id", msg.ID, "formatted_time", humanTime, "location", loc.String())
-	channelInfo := p.Channel.MakeChannelLink(p.Channel.GetInfoOrUnknown(msg.ChannelID))
+	channelInfo := p.Channel.MakeChannelLink(p.Channel.GetInfoOrUnknown(msg.ChannelID), r.DisplaySettings)
 	confirmation := &model.Post{
 		UserId:    userID,
 		ChannelId: channelID,
-		Message:   fmt.Sprintf("%s Message scheduled for **%s** %s has been sent.", constants.EmojiSuccess, humanTime, channelInfo),
+		Message:   r.Text("sent", constants.EmojiSuccess, humanTime, channelInfo),
 	}
 	p.logger.Debug("Sending ephemeral send confirmation post", "user_id", userID, "channel_id", channelID, "message_id", msg.ID)
 	p.poster.SendEphemeralPost(userID, confirmation)
@@ -253,11 +257,12 @@ func (p *Plugin) sendSendConfirmation(userID string, channelID string, msg *type
 }
 
 func (p *Plugin) sendSendError(userID string, channelID string, msgID string, err error) {
+	r := formatter.ForUser(p.presentation, userID)
 	p.logger.Debug("Preparing send error message", "user_id", userID, "channel_id", channelID, "message_id", msgID, "error", err)
 	alert := &model.Post{
 		UserId:    userID,
 		ChannelId: channelID,
-		Message:   fmt.Sprintf("%s Could not send message: %v", constants.EmojiError, err),
+		Message:   r.Text("send_error", constants.EmojiError, err),
 	}
 	p.logger.Debug("Sending ephemeral send error post", "user_id", userID, "channel_id", channelID, "message_id", msgID)
 	p.poster.SendEphemeralPost(userID, alert)

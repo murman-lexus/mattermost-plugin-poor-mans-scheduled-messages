@@ -31,9 +31,9 @@ func TestSendNowPublicationFailureRetainsJob(t *testing.T) {
 	poster.EXPECT().CreatePost(gomock.Any()).Return(&model.AppError{Id: "test.invalid", StatusCode: 400})
 	info := &ports.ChannelInfo{ChannelID: msg.ChannelID}
 	ch.EXPECT().GetInfoOrUnknown(msg.ChannelID).Return(info).AnyTimes()
-	ch.EXPECT().MakeChannelLink(info).Return("channel").AnyTimes()
+	ch.EXPECT().MakeChannelLink(info, gomock.Any()).Return("channel").AnyTimes()
 	poster.EXPECT().DM("bot", msg.UserID, gomock.Any()).Return(nil).AnyTimes()
-	s := New(testutil.FakeLogger{}, poster, st, ch, "bot", testutil.FakeClock{NowTime: time.Now()})
+	s := New(testutil.FakeLogger{}, poster, st, ch, "bot", testutil.FakeClock{NowTime: time.Now()}, nil)
 	require.Error(t, s.SendNow(msg))
 	saved, err := st.GetScheduledMessage(msg.ID)
 	require.NoError(t, err, "a publication error must not delete the job")

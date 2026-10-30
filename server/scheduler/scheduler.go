@@ -12,30 +12,32 @@ import (
 
 // Scheduler delivers scheduled messages on a timed loop.
 type Scheduler struct {
-	logger ports.Logger
-	poster ports.PostService
-	store  ports.Store
-	linker ports.ChannelService
-	botID  string
-	clock  ports.Clock
-	ctx    context.Context
-	cancel context.CancelFunc
-	mu     sync.Mutex
+	presentation ports.DisplayPreferences
+	logger       ports.Logger
+	poster       ports.PostService
+	store        ports.Store
+	linker       ports.ChannelService
+	botID        string
+	clock        ports.Clock
+	ctx          context.Context
+	cancel       context.CancelFunc
+	mu           sync.Mutex
 }
 
 // New builds a Scheduler with the provided dependencies.
-func New(logger ports.Logger, poster ports.PostService, store ports.Store, linker ports.ChannelService, botID string, clk ports.Clock) *Scheduler {
+func New(logger ports.Logger, poster ports.PostService, store ports.Store, linker ports.ChannelService, botID string, clk ports.Clock, presentation ports.DisplayPreferences) *Scheduler {
 	logger.Debug("Creating new scheduler instance")
 	ctx, cancel := context.WithCancel(context.Background())
 	return &Scheduler{
-		logger: logger,
-		poster: poster,
-		store:  store,
-		linker: linker,
-		botID:  botID,
-		clock:  clk,
-		ctx:    ctx,
-		cancel: cancel,
+		presentation: presentation,
+		logger:       logger,
+		poster:       poster,
+		store:        store,
+		linker:       linker,
+		botID:        botID,
+		clock:        clk,
+		ctx:          ctx,
+		cancel:       cancel,
 	}
 }
 

@@ -39,7 +39,7 @@ type ChannelInfo struct {
 // ChannelService provides channel metadata and formatting helpers.
 type ChannelService interface {
 	GetInfoOrUnknown(channelID string) *ChannelInfo
-	MakeChannelLink(info *ChannelInfo) string
+	MakeChannelLink(info *ChannelInfo, display types.DisplaySettings) string
 }
 
 // ChannelDataService provides channel data access.
@@ -56,6 +56,18 @@ type TeamService interface {
 // SlashCommandService registers slash commands.
 type SlashCommandService interface {
 	Register(cmd *model.Command) error
+}
+
+// DisplayPreferences reads current locale and clock preferences for a recipient.
+type DisplayPreferences interface {
+	ForUser(userID string) types.DisplaySettings
+}
+
+// DisplaySettingsAPI is the Mattermost boundary used to load display preferences.
+type DisplaySettingsAPI interface {
+	GetUser(userID string) (*model.User, *model.AppError)
+	GetPreferencesForUser(userID string) ([]model.Preference, *model.AppError)
+	GetConfig() *model.Config
 }
 
 // UserService fetches user data.

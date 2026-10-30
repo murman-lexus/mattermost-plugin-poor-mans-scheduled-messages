@@ -40,9 +40,9 @@ func TestDeliveryStateControlsVisibleActions(t *testing.T) {
 			} else {
 				info := &ports.ChannelInfo{ChannelID: msg.ChannelID}
 				ch.EXPECT().GetInfoOrUnknown(msg.ChannelID).Return(info)
-				ch.EXPECT().MakeChannelLink(info).Return("channel")
+				ch.EXPECT().MakeChannelLink(info, gomock.Any()).Return("channel")
 			}
-			resp := NewListService(testutil.FakeLogger{}, st, ch).Build(msg.UserID)
+			resp := NewListService(testutil.FakeLogger{}, st, ch, nil).Build(msg.UserID)
 			if msg.Terminal() {
 				require.Equal(t, constants.EmptyListMessage, resp.Text)
 				return
@@ -59,6 +59,50 @@ func TestDeliveryStateControlsVisibleActions(t *testing.T) {
 			if tc.state == types.StateUncertain {
 				require.Equal(t, "Check delivery", atts[0].Actions[0].Name)
 			}
+		})
+	}
+}
+
+func TestDeliveryCheckUsesLocaleAndPersonalClock(t *testing.T) {
+	for _, tc := range []struct {
+		locale     string
+		military   bool
+		wantDate   string
+		wantNext   string
+		wantAction string
+	}{
+		{"ru", true, "30 октября 2026 01:10", "Следующая проверка: ", "Проверить доставку"},
+		{"ru", false, "30 октября 2026 1:10 AM", "Следующая проверка: ", "Проверить доставку"},
+		{"en", true, "Oct 30, 2026 01:10", "Next check: ", "Check delivery"},
+		{"en", false, "Oct 30, 2026 1:10 AM", "Next check: ", "Check delivery"},
+	} {
+		t.Run(tc.wantDate, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			st := mock.NewMockStore(ctrl)
+			ch := mock.NewMockChannelService(ctrl)
+			display := types.DisplaySettings{Locale: tc.locale, Use24Hour: tc.military}
+			prefs := testutil.DisplayPreferences(func(userID string) types.DisplaySettings {
+				require.Equal(t, "user", userID)
+				return display
+			})
+			msg := &types.ScheduledMessage{
+				ID: "job", UserID: "user", ChannelID: "channel", State: types.StateUncertain,
+				MessageContent: "text", Timezone: "Europe/Kaliningrad", Attempts: 2,
+				PostAt:        time.Date(2026, 10, 29, 23, 0, 0, 0, time.UTC),
+				NextAttemptAt: time.Date(2026, 10, 29, 23, 10, 0, 0, time.UTC),
+			}
+			st.EXPECT().ListUserMessageIDs("user").Return([]string{msg.ID}, nil)
+			st.EXPECT().GetScheduledMessage(msg.ID).Return(msg, nil)
+			info := &ports.ChannelInfo{ChannelID: msg.ChannelID}
+			ch.EXPECT().GetInfoOrUnknown(msg.ChannelID).Return(info)
+			ch.EXPECT().MakeChannelLink(info, display).Return("channel")
+			resp := NewListService(testutil.FakeLogger{}, st, ch, prefs).Build("user")
+			atts := resp.Props["attachments"].([]*model.MessageAttachment)
+			require.Len(t, atts, 1)
+			require.Contains(t, atts[0].Text, tc.wantNext+tc.wantDate)
+			require.Len(t, atts[0].Actions, 1)
+			require.Equal(t, "send", atts[0].Actions[0].Id)
+			require.Equal(t, tc.wantAction, atts[0].Actions[0].Name)
 		})
 	}
 }

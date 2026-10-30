@@ -130,8 +130,9 @@ func (s *Scheduler) findPublishedPost(msg *types.ScheduledMessage) (*model.Post,
 }
 
 func (s *Scheduler) dmUserOnFailedMessage(msg *types.ScheduledMessage, postErr error) {
-	channelInfo := s.linker.MakeChannelLink(s.linker.GetInfoOrUnknown(msg.ChannelID))
-	message := formatter.FormatSchedulerFailure(channelInfo, postErr, msg.MessageContent)
+	r := formatter.ForUser(s.presentation, msg.UserID)
+	channelInfo := s.linker.MakeChannelLink(s.linker.GetInfoOrUnknown(msg.ChannelID), r.DisplaySettings)
+	message := r.FormatSchedulerFailure(channelInfo, postErr, msg.MessageContent)
 	if err := s.poster.DM(s.botID, msg.UserID, &model.Post{Message: message}); err != nil {
 		s.logger.Error("Cannot notify author of delivery failure", "message_id", msg.ID, "error_type", fmt.Sprintf("%T", err))
 	}

@@ -25,14 +25,14 @@ func setupDelivery(t *testing.T) (*Scheduler, ports.Store, *testutil.MemoryKV, *
 	ch := mock.NewMockChannelService(ctrl)
 	info := &ports.ChannelInfo{ChannelID: "channel"}
 	ch.EXPECT().GetInfoOrUnknown("channel").Return(info).AnyTimes()
-	ch.EXPECT().MakeChannelLink(info).Return("channel").AnyTimes()
+	ch.EXPECT().MakeChannelLink(info, gomock.Any()).Return("channel").AnyTimes()
 	poster.EXPECT().DM("bot", "user", gomock.Any()).Return(nil).AnyTimes()
 	db := testutil.NewMemoryKV()
 	st := store.NewKVStore(testutil.FakeLogger{}, &pluginapi.NewClient(db, nil).KV, nil, 100)
 	clk := &testutil.FakeClock{NowTime: time.Date(2026, 10, 30, 12, 0, 0, 0, time.UTC)}
 	msg := &types.ScheduledMessage{ID: "job", UserID: "user", ChannelID: "channel", RootID: "thread", MessageContent: "text", PostAt: clk.Now(), Timezone: "UTC"}
 	require.NoError(t, st.SaveScheduledMessage(msg.UserID, msg))
-	return New(testutil.FakeLogger{}, poster, st, ch, "bot", clk), st, db, poster, msg, clk
+	return New(testutil.FakeLogger{}, poster, st, ch, "bot", clk, nil), st, db, poster, msg, clk
 }
 
 func TestSendNowSuccessKeepsReceiptAndRejectsStaleSend(t *testing.T) {
@@ -75,7 +75,7 @@ func TestManualAndTimerShareAtomicClaim(t *testing.T) {
 			}()
 			<-started
 			otherStore := store.NewKVStore(testutil.FakeLogger{}, &pluginapi.NewClient(db, nil).KV, nil, 100)
-			other := New(testutil.FakeLogger{}, poster, otherStore, s.linker, "bot", clk)
+			other := New(testutil.FakeLogger{}, poster, otherStore, s.linker, "bot", clk, nil)
 			if timerFirst {
 				require.ErrorIs(t, other.SendNow(msg), types.ErrMessageBusy)
 			} else {
@@ -103,7 +103,7 @@ func TestRestartAfterPublicationBeforeReceiptDoesNotRepublish(t *testing.T) {
 	require.Equal(t, types.StateSending, got.State)
 	clk.NowTime = clk.Now().Add(types.DeliveryLease)
 	poster.EXPECT().GetPostsForChannel(msg.ChannelID, 0, 100).Return(&model.PostList{Order: []string{published.Id}, Posts: map[string]*model.Post{published.Id: published}}, nil)
-	restarted := New(testutil.FakeLogger{}, poster, store.NewKVStore(testutil.FakeLogger{}, &pluginapi.NewClient(db, nil).KV, nil, 100), s.linker, "bot", clk)
+	restarted := New(testutil.FakeLogger{}, poster, store.NewKVStore(testutil.FakeLogger{}, &pluginapi.NewClient(db, nil).KV, nil, 100), s.linker, "bot", clk, nil)
 	restarted.processDueMessages()
 	got, err = st.GetScheduledMessage(msg.ID)
 	require.NoError(t, err)

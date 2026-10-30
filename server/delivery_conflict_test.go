@@ -27,7 +27,7 @@ func TestHTTPActionsConflictWithPublicationInProgress(t *testing.T) {
 			ch := mock.NewMockChannelService(ctrl)
 			info := &ports.ChannelInfo{ChannelID: "channel"}
 			ch.EXPECT().GetInfoOrUnknown("channel").Return(info)
-			ch.EXPECT().MakeChannelLink(info).Return("channel")
+			ch.EXPECT().MakeChannelLink(info, gomock.Any()).Return("channel")
 			db := testutil.NewMemoryKV()
 			st := store.NewKVStore(testutil.FakeLogger{}, &pluginapi.NewClient(db, nil).KV, nil, 100)
 			clk := testutil.FakeClock{NowTime: time.Date(2026, 10, 30, 12, 0, 0, 0, time.UTC)}
@@ -36,9 +36,9 @@ func TestHTTPActionsConflictWithPublicationInProgress(t *testing.T) {
 			claim, err := st.ClaimScheduledMessage(msg.UserID, msg.ID, clk.Now(), true)
 			require.NoError(t, err)
 			require.NoError(t, st.StartDelivery(claim, clk.Now()))
-			list := command.NewListService(testutil.FakeLogger{}, st, ch)
+			list := command.NewListService(testutil.FakeLogger{}, st, ch, nil)
 			handler := command.NewHandler(testutil.FakeLogger{}, nil, nil, st, ch, list, nil, "")
-			s := scheduler.New(testutil.FakeLogger{}, poster, st, ch, "bot", clk)
+			s := scheduler.New(testutil.FakeLogger{}, poster, st, ch, "bot", clk, nil)
 			p := &Plugin{logger: testutil.FakeLogger{}, poster: poster, Command: handler, Scheduler: s}
 			poster.EXPECT().UpdateEphemeralPost(msg.UserID, gomock.Any())
 			poster.EXPECT().SendEphemeralPost(msg.UserID, gomock.Any()).Do(func(_ string, post *model.Post) { require.Contains(t, post.Message, "already being processed") })
