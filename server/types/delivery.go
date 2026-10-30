@@ -29,15 +29,16 @@ const (
 
 // Delivery errors distinguish ownership, state, and concurrency conflicts.
 var (
-	ErrMessageNotFound   = errors.New("scheduled message not found")
-	ErrMessageBusy       = errors.New("scheduled message is already being processed")
-	ErrMessageFinal      = errors.New("scheduled message has already been sent or cancelled")
-	ErrNotOwner          = errors.New("scheduled message belongs to another user")
-	ErrLeaseLost         = errors.New("delivery claim has expired or was replaced")
-	ErrNotDue            = errors.New("scheduled message is not due yet")
-	ErrConflict          = errors.New("concurrent modification; please try again")
-	ErrMessageLimit      = errors.New("scheduled message limit reached")
-	ErrDeliveryUncertain = errors.New("delivery outcome is unknown; automatic re-publication is blocked while checking for the original post")
+	ErrPublicationBlocked = errors.New("publication was blocked before sending")
+	ErrMessageNotFound    = errors.New("scheduled message not found")
+	ErrMessageBusy        = errors.New("scheduled message is already being processed")
+	ErrMessageFinal       = errors.New("scheduled message has already been sent or cancelled")
+	ErrNotOwner           = errors.New("scheduled message belongs to another user")
+	ErrLeaseLost          = errors.New("delivery claim has expired or was replaced")
+	ErrNotDue             = errors.New("scheduled message is not due yet")
+	ErrConflict           = errors.New("concurrent modification; please try again")
+	ErrMessageLimit       = errors.New("scheduled message limit reached")
+	ErrDeliveryUncertain  = errors.New("delivery outcome is unknown; automatic re-publication is blocked while checking for the original post")
 )
 
 // DeliveryResult contains only receipt metadata and a controlled technical reason.

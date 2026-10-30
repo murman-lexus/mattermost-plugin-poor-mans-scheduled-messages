@@ -70,6 +70,12 @@ func (s *Scheduler) send(identity *types.ScheduledMessage, manual bool) error {
 // Only explicit rejections can safely be retried. Transport errors, timeouts,
 // and server errors can occur after commit and must be reconciled instead.
 func classifyFailure(err error) types.DeliveryResult {
+	// Authorization failures occur before the privileged publication request.
+	// Keep them cancellable and explicitly retryable instead of reconciling a
+	// post that was never submitted, even if the check failed with an API error.
+	if errors.Is(err, types.ErrPublicationBlocked) {
+		return types.DeliveryResult{State: types.StateFailed, Reason: "publication_blocked"}
+	}
 	// pluginapi replaces HTTP 404 AppErrors with this sentinel, including
 	// when the error reaches us through an additional wrapper.
 	if errors.Is(err, pluginapi.ErrNotFound) {

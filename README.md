@@ -29,6 +29,10 @@ With the plugin installed: `/schedule help`
 
 ..or view the help [here](assets/help.md)
 
+### Author access checks
+
+Before each delivery, including **Send**, the plugin checks that the author is active, is still a member of the destination channel, and has permission to read its messages and create posts. Full content-access validation is supported on Mattermost 9.0 and later using `read_channel_content`. Older servers use `read_channel` as a best-effort check; permission changes backported to older release branches are not covered by this guarantee. If access has been revoked or cannot be verified, the message is not published. The bot attempts to DM the author with the reason and original text; **Send** also displays the reason in an ephemeral error. A failure of these checks retains the job in the failed state without automatic retries. The author can cancel it or explicitly retry after access is restored; it is not treated as an uncertain publication.
+
 ### Language and time display
 
 Dates, month names, confirmations, list labels, and action buttons follow the user's Mattermost interface language. The clock format follows the user's personal time preference independently of language: `13:10` for 24-hour time or `1:10 PM` for 12-hour time. The `AM` and `PM` markers remain in English for every language.

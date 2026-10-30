@@ -51,7 +51,7 @@ func (prodBuilder) NewStore(cli *pluginapi.Client, maxUserMessages int) ports.St
 }
 
 func (prodBuilder) NewScheduler(cli *pluginapi.Client, st ports.Store, ch ports.ChannelService, botID string, clk ports.Clock, presentation ports.DisplayPreferences) *scheduler.Scheduler {
-	return scheduler.New(&cli.Log, &cli.Post, st, ch, botID, clk, presentation)
+	return scheduler.New(&cli.Log, mm.NewScheduledPostService(cli), st, ch, botID, clk, presentation)
 }
 
 func (prodBuilder) NewCommandHandler(
