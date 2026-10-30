@@ -5,6 +5,7 @@ import (
 	"github.com/apartmentlines/mattermost-plugin-poor-mans-scheduled-messages/server/types"
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/pluginapi"
+	"time"
 )
 
 // Logger defines the logging interface used by the plugin.
@@ -21,6 +22,7 @@ type Clock = clock.Clock
 // PostService abstracts Mattermost post operations.
 type PostService interface {
 	CreatePost(post *model.Post) error
+	GetPostsForChannel(channelID string, page, perPage int) (*model.PostList, error)
 	DM(botID, userID string, post *model.Post) error
 	UpdateEphemeralPost(userID string, post *model.Post)
 	SendEphemeralPost(userID string, post *model.Post)
@@ -93,6 +95,9 @@ type Store interface {
 	ListScheduledMessages() ([]*types.ScheduledMessage, error)
 	ListUserMessageIDs(userID string) ([]string, error)
 	GenerateMessageID() string
+	ClaimScheduledMessage(userID, msgID string, now time.Time, manual bool) (*types.ScheduledMessage, error)
+	StartDelivery(claim *types.ScheduledMessage, now time.Time) error
+	FinishDelivery(claim *types.ScheduledMessage, result types.DeliveryResult, now time.Time) error
 }
 
 // Scheduler manages scheduled message delivery.
