@@ -10,6 +10,7 @@ import (
 	"github.com/apartmentlines/mattermost-plugin-poor-mans-scheduled-messages/adapters/mock"
 	"github.com/apartmentlines/mattermost-plugin-poor-mans-scheduled-messages/internal/ports"
 	"github.com/apartmentlines/mattermost-plugin-poor-mans-scheduled-messages/internal/testutil"
+	"github.com/apartmentlines/mattermost-plugin-poor-mans-scheduled-messages/server/store"
 	"github.com/apartmentlines/mattermost-plugin-poor-mans-scheduled-messages/server/types"
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin/plugintest"
@@ -64,7 +65,8 @@ func TestDelivery_RevokedPermissions(t *testing.T) {
 			}
 			t.Run(scenario.name+"/"+path, func(t *testing.T) {
 				ctrl := gomock.NewController(t)
-				st := mock.NewMockStore(ctrl)
+				db := testutil.NewMemoryKV()
+				st := store.NewKVStore(testutil.FakeLogger{}, &pluginapi.NewClient(db, nil).KV, nil, 100)
 				ch := mock.NewMockChannelService(ctrl)
 				api := &deliveryTestAPI{}
 				api.On("GetServerVersion").Return("9.0.0").Maybe()
@@ -74,16 +76,16 @@ func TestDelivery_RevokedPermissions(t *testing.T) {
 					ID: "scheduled", UserID: "author", ChannelID: "private-channel",
 					MessageContent: "original text", PostAt: time.Now(), Timezone: "UTC",
 				}
-				st.EXPECT().DeleteScheduledMessage(msg.UserID, msg.ID).Return(nil)
+				require.NoError(t, st.SaveScheduledMessage(msg.UserID, msg))
 				info := &ports.ChannelInfo{ChannelID: msg.ChannelID}
 				ch.EXPECT().GetInfoOrUnknown(msg.ChannelID).Return(info)
-				ch.EXPECT().MakeChannelLink(info).Return("destination")
+				ch.EXPECT().MakeChannelLink(info, gomock.Any()).Return("destination")
 				api.On("GetDirectChannel", "bot", "author").Return(&model.Channel{Id: "dm"}, nil).Once()
 				api.On("CreatePost", testifymock.MatchedBy(func(post *model.Post) bool {
 					return post.UserId == "bot" && post.ChannelId == "dm" &&
 						strings.Contains(post.Message, scenario.reason) && strings.Contains(post.Message, msg.MessageContent)
 				})).Return(&model.Post{}, nil).Once()
-				s := (prodBuilder{}).NewScheduler(cli, st, ch, "bot", testutil.FakeClock{})
+				s := (prodBuilder{}).NewScheduler(cli, st, ch, "bot", testutil.FakeClock{NowTime: time.Now()}, nil)
 				if viaButton {
 					postMock := mock.NewMockPostService(ctrl)
 					cmd := &mockCommand{
@@ -109,6 +111,11 @@ func TestDelivery_RevokedPermissions(t *testing.T) {
 				} else {
 					require.ErrorContains(t, s.SendNow(msg), scenario.reason)
 				}
+				saved, err := st.GetScheduledMessage(msg.ID)
+				require.NoError(t, err)
+				require.Equal(t, types.StateFailed, saved.State)
+				require.Equal(t, "publication_blocked", saved.LastReason)
+				require.Equal(t, msg.MessageContent, saved.MessageContent)
 				api.AssertExpectations(t)
 			})
 		}

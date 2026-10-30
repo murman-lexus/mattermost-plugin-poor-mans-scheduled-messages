@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/apartmentlines/mattermost-plugin-poor-mans-scheduled-messages/internal/ports"
+	"github.com/apartmentlines/mattermost-plugin-poor-mans-scheduled-messages/server/types"
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/pluginapi"
 )
@@ -24,6 +25,13 @@ func NewScheduledPostService(client *pluginapi.Client) *ScheduledPostService {
 // CreatePost checks live account, membership and channel permissions on every call.
 // The plugin's CreatePost API does not enforce the author's permissions itself.
 func (s *ScheduledPostService) CreatePost(post *model.Post) error {
+	if err := s.checkAuthorAccess(post); err != nil {
+		return fmt.Errorf("%w: %w", types.ErrPublicationBlocked, err)
+	}
+	return s.PostService.CreatePost(post)
+}
+
+func (s *ScheduledPostService) checkAuthorAccess(post *model.Post) error {
 	user, err := s.client.User.Get(post.UserId)
 	if err != nil {
 		return fmt.Errorf("cannot verify the author's account: %w", err)
@@ -59,5 +67,5 @@ func (s *ScheduledPostService) CreatePost(post *model.Post) error {
 	if !s.client.User.HasPermissionToChannel(post.UserId, post.ChannelId, model.PermissionCreatePost) {
 		return errors.New("author does not have permission to post in the destination channel")
 	}
-	return s.PostService.CreatePost(post)
+	return nil
 }
