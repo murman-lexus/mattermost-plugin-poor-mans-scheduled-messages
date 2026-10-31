@@ -35,7 +35,7 @@ const (
 	// AutocompleteDesc is the description used in autocomplete.
 	AutocompleteDesc = "Schedule messages to be sent later"
 	// AutocompleteHint is the hint used in autocomplete.
-	AutocompleteHint = "[subcommand]"
+	AutocompleteHint = "at <time> [on <date>] message <text> | list | help"
 	// AutocompleteAtHint is the hint for the schedule subcommand.
 	AutocompleteAtHint = "<time> [on <date>] message <text>"
 	// AutocompleteAtDesc describes the schedule subcommand.
@@ -66,7 +66,7 @@ const (
 	// Parser Errors
 
 	// ParserErrInvalidFormat is returned for invalid command formats.
-	ParserErrInvalidFormat = "invalid format. Use: `at <time> [on <date>] message <your message text>`"
+	ParserErrInvalidFormat = "invalid format. Use: `at <time> [on <date>] message <your message text>`. Examples: `/schedule at 13:30 message Hello` or `/schedule at 9AM on fri message Hello`"
 	// ParserErrInvalidDateFormat is returned for invalid date inputs.
 	ParserErrInvalidDateFormat = "invalid date format specified: '%s'. Use YYYY-MM-DD, day name (e.g., 'tuesday', 'fri'), or short date (e.g., '3jan', '25dec')"
 	// ParserErrUnknownDateFormat is returned for unknown date formats.

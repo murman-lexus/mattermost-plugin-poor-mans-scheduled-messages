@@ -38,6 +38,8 @@
     "delivery_status": "Livraison : **%s** · tentatives %d/%d",
     "delivery_reason": "Motif : %s",
     "next_check": "Prochaine vérification : %s",
-    "check_delivery": "Vérifier la livraison"
+    "check_delivery": "Vérifier la livraison",
+    "today": "Aujourd’hui",
+    "tomorrow": "Demain"
   }
 }

@@ -38,6 +38,8 @@
     "delivery_status": "تحویل: **%s** · تلاش‌ها %d/%d",
     "delivery_reason": "دلیل: %s",
     "next_check": "بررسی بعدی: %s",
-    "check_delivery": "بررسی تحویل"
+    "check_delivery": "بررسی تحویل",
+    "today": "امروز",
+    "tomorrow": "فردا"
   }
 }

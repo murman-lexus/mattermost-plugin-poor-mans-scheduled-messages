@@ -38,6 +38,8 @@
     "delivery_status": "Zustellung: **%s** · Versuche %d/%d",
     "delivery_reason": "Grund: %s",
     "next_check": "Nächste Prüfung: %s",
-    "check_delivery": "Zustellung prüfen"
+    "check_delivery": "Zustellung prüfen",
+    "today": "Heute",
+    "tomorrow": "Morgen"
   }
 }

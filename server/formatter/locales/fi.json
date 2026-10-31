@@ -38,6 +38,8 @@
     "delivery_status": "Toimitus: **%s** · yritykset %d/%d",
     "delivery_reason": "Syy: %s",
     "next_check": "Seuraava tarkistus: %s",
-    "check_delivery": "Tarkista toimitus"
+    "check_delivery": "Tarkista toimitus",
+    "today": "Tänään",
+    "tomorrow": "Huomenna"
   }
 }

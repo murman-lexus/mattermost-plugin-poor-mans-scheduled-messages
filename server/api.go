@@ -24,6 +24,7 @@ func (p *Plugin) ServeHTTP(_ *plugin.Context, w http.ResponseWriter, r *http.Req
 	api := router.PathPrefix("/api/v1").Subrouter()
 	api.HandleFunc("/delete", p.UserDeleteMessage).Methods(http.MethodPost)
 	api.HandleFunc("/send", p.UserSendMessage).Methods(http.MethodPost)
+	api.HandleFunc("/autocomplete/{kind:time|date}", p.commandAutocomplete).Methods(http.MethodGet)
 	router.ServeHTTP(w, r)
 }
 

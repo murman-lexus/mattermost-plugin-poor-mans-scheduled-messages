@@ -38,6 +38,8 @@
     "delivery_status": "전송: **%s** · 시도 %d/%d",
     "delivery_reason": "이유: %s",
     "next_check": "다음 확인: %s",
-    "check_delivery": "전송 확인"
+    "check_delivery": "전송 확인",
+    "today": "오늘",
+    "tomorrow": "내일"
   }
 }

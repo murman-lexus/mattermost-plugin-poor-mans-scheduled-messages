@@ -85,11 +85,16 @@ func (r Renderer) Text(key string, args ...any) string {
 func (r Renderer) DateTime(t time.Time) string {
 	c := r.catalog()
 	date := strings.ReplaceAll(t.Format(c.Date), t.Month().String(), c.Months[int(t.Month())-1])
+	return date + " " + r.ClockTime(t)
+}
+
+// ClockTime follows the recipient's 12/24-hour preference.
+func (r Renderer) ClockTime(t time.Time) string {
 	clock := "3:04 PM"
 	if r.Use24Hour {
 		clock = "15:04"
 	}
-	return date + " " + t.Format(clock)
+	return t.Format(clock)
 }
 
 // Destination formats raw channel metadata without translating user content.

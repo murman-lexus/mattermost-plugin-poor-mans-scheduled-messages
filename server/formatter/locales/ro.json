@@ -38,6 +38,8 @@
     "delivery_status": "Livrare: **%s** · încercări %d/%d",
     "delivery_reason": "Motiv: %s",
     "next_check": "Următoarea verificare: %s",
-    "check_delivery": "Verifică livrarea"
+    "check_delivery": "Verifică livrarea",
+    "today": "Astăzi",
+    "tomorrow": "Mâine"
   }
 }

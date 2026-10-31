@@ -38,6 +38,8 @@
     "delivery_status": "Delivery: **%s** · attempts %d/%d",
     "delivery_reason": "Reason: %s",
     "next_check": "Next check: %s",
-    "check_delivery": "Check delivery"
+    "check_delivery": "Check delivery",
+    "today": "Today",
+    "tomorrow": "Tomorrow"
   }
 }

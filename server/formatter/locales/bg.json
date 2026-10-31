@@ -38,6 +38,8 @@
     "delivery_status": "Доставка: **%s** · опити %d/%d",
     "delivery_reason": "Причина: %s",
     "next_check": "Следваща проверка: %s",
-    "check_delivery": "Провери доставката"
+    "check_delivery": "Провери доставката",
+    "today": "Днес",
+    "tomorrow": "Утре"
   }
 }

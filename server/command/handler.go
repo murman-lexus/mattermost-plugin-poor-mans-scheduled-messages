@@ -136,8 +136,9 @@ func (h *Handler) getScheduleAutocompleteData() *model.AutocompleteData {
 	schedule := model.NewAutocompleteData(constants.CommandTrigger, constants.AutocompleteHint, constants.AutocompleteDesc)
 
 	at := model.NewAutocompleteData(constants.SubcommandAt, constants.AutocompleteAtHint, constants.AutocompleteAtDesc)
-	at.AddTextArgument(constants.AutocompleteAtArgTimeName, constants.AutocompleteAtArgTimeHint, "")
-	at.AddTextArgument(constants.AutocompleteAtArgDateName, constants.AutocompleteAtArgDateHint, "")
+	at.AddDynamicListArgument("Choose a time or enter your own (09:00 or 1:30PM)", autocompleteURL+"/time", true)
+	at.AddDynamicListArgument("Optional: choose a date, or continue with message", autocompleteURL+"/date", false)
+	at.AddStaticListArgument("Continue with the message text", true, []model.AutocompleteListItem{{Item: "message", Hint: "<text>", HelpText: "Send at the next occurrence of the chosen time when no date is specified"}})
 	at.AddTextArgument(constants.AutocompleteAtArgMsgName, constants.AutocompleteAtArgMsgHint, "")
 	schedule.AddCommand(at)
 

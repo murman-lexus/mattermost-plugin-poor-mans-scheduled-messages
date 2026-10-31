@@ -38,6 +38,8 @@
     "delivery_status": "Giao tin: **%s** · số lần thử %d/%d",
     "delivery_reason": "Lý do: %s",
     "next_check": "Lần kiểm tra tiếp theo: %s",
-    "check_delivery": "Kiểm tra giao tin"
+    "check_delivery": "Kiểm tra giao tin",
+    "today": "Hôm nay",
+    "tomorrow": "Ngày mai"
   }
 }

@@ -38,6 +38,8 @@
     "delivery_status": "配信：**%s** · 試行 %d/%d",
     "delivery_reason": "理由：%s",
     "next_check": "次回の確認：%s",
-    "check_delivery": "配信を確認"
+    "check_delivery": "配信を確認",
+    "today": "今日",
+    "tomorrow": "明日"
   }
 }

@@ -125,23 +125,7 @@ func (s *ScheduleService) getUserTimezone(userID string) string {
 		return constants.DefaultTimezone
 	}
 
-	tz := constants.DefaultTimezone
-	source := "default"
-
-	automaticTimezone, aok := user.Timezone["automaticTimezone"]
-	useAutomaticTimezone, uok := user.Timezone["useAutomaticTimezone"]
-	manualTimezone, mok := user.Timezone["manualTimezone"]
-
-	if aok && uok && automaticTimezone != "" && useAutomaticTimezone == "true" {
-		tz = automaticTimezone
-		source = "automatic"
-	} else if mok && manualTimezone != "" {
-		tz = manualTimezone
-		source = "manual"
-	}
-
-	s.logger.Debug("Determined user timezone", "user_id", userID, "source", source)
-	return tz
+	return userTimezone(user)
 }
 
 func (s *ScheduleService) validateRequest(userID, text string, r formatter.Renderer) *model.CommandResponse {

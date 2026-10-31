@@ -38,6 +38,8 @@
     "delivery_status": "Bezorging: **%s** · pogingen %d/%d",
     "delivery_reason": "Reden: %s",
     "next_check": "Volgende controle: %s",
-    "check_delivery": "Bezorging controleren"
+    "check_delivery": "Bezorging controleren",
+    "today": "Vandaag",
+    "tomorrow": "Morgen"
   }
 }

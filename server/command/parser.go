@@ -83,10 +83,7 @@ func parseScheduleInput(input string) (*ParsedSchedule, error) {
 	if matches == nil {
 		return nil, errors.New(constants.ParserErrInvalidFormat)
 	}
-	timeStr := strings.ToLower(strings.ReplaceAll(matches[1], " ", ""))
-	if len(timeStr) > 1 && timeStr[0] == '0' {
-		timeStr = timeStr[1:]
-	}
+	timeStr := normalizeTime(matches[1])
 	dateStr := strings.ToLower(matches[2])
 	message := strings.TrimSpace(matches[3])
 
@@ -222,4 +219,13 @@ func resolveScheduledTime(timeStr string, dateStr string, now time.Time, loc *ti
 	default:
 		return time.Time{}, errors.New(constants.ParserErrUnknownDateFormat)
 	}
+}
+
+// normalizeTime is shared by execution and autocomplete so accepted values agree.
+func normalizeTime(value string) string {
+	value = strings.ToLower(strings.Join(strings.Fields(value), ""))
+	if len(value) > 1 && value[0] == '0' {
+		value = value[1:]
+	}
+	return value
 }

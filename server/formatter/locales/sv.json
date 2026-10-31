@@ -38,6 +38,8 @@
     "delivery_status": "Leverans: **%s** · försök %d/%d",
     "delivery_reason": "Orsak: %s",
     "next_check": "Nästa kontroll: %s",
-    "check_delivery": "Kontrollera leverans"
+    "check_delivery": "Kontrollera leverans",
+    "today": "Idag",
+    "tomorrow": "Imorgon"
   }
 }

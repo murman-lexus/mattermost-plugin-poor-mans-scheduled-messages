@@ -38,6 +38,8 @@
     "delivery_status": "Kézbesítés: **%s** · kísérletek %d/%d",
     "delivery_reason": "Ok: %s",
     "next_check": "Következő ellenőrzés: %s",
-    "check_delivery": "Kézbesítés ellenőrzése"
+    "check_delivery": "Kézbesítés ellenőrzése",
+    "today": "Ma",
+    "tomorrow": "Holnap"
   }
 }

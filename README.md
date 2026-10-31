@@ -29,6 +29,8 @@ With the plugin installed: `/schedule help`
 
 ..or view the help [here](assets/help.md)
 
+Command autocomplete guides you through the time, an optional date, the `message` keyword, and your message text. Time and date suggestions use your Mattermost time zone and personal 12/24-hour preference. Suggested dates include localized Today/Tomorrow labels; you can also type any supported value manually. The plugin uses server-side autocomplete without a web plugin component. Client presentation, especially in the native mobile app, should be checked on the installed client version.
+
 ### Author access checks
 
 Before each delivery, including **Send**, the plugin checks that the author is active, is still a member of the destination channel, and has permission to read its messages and create posts. Full content-access validation is supported on Mattermost 9.0 and later using `read_channel_content`. Older servers use `read_channel` as a best-effort check; permission changes backported to older release branches are not covered by this guarantee. If access has been revoked or cannot be verified, the message is not published. The bot attempts to DM the author with the reason and original text; **Send** also displays the reason in an ephemeral error. A failure of these checks retains the job in the failed state without automatic retries. The author can cancel it or explicitly retry after access is restored; it is not treated as an uncertain publication.
@@ -39,7 +41,7 @@ Dates, month names, confirmations, list labels, and action buttons follow the us
 
 Current preferences are read when a response is generated, including when listing existing scheduled messages. Dates use the time zone saved with the scheduled message. If settings cannot be loaded, the plugin falls back to the server's default client language (or English) and a 12-hour clock for the unavailable settings.
 
-Error localization is partial: surrounding labels are translated, while some validation reasons (such as message count and size limits), parser details, and external technical errors remain in English. A response can therefore contain both translated and English text. Delivery state and failure category identifiers are technical English values. Command syntax, autocomplete descriptions, and the help document also remain in English.
+Error localization is partial: surrounding labels are translated, while some validation reasons (such as message count and size limits), parser details, and external technical errors remain in English. A response can therefore contain both translated and English text. Delivery state and failure category identifiers are technical English values. Command syntax, grammar hints, and the help document remain in English.
 
 ### Delivery and recovery
 

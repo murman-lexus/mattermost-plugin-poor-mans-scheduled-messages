@@ -93,6 +93,7 @@ type Plugin struct {
 	logger                 ports.Logger
 	poster                 ports.PostService
 	presentation           ports.DisplayPreferences
+	autocompleter          *command.Autocompleter
 }
 
 func (p *Plugin) loadHelpText(text string) (string, error) {
@@ -193,6 +194,7 @@ func (p *Plugin) initialize(botID string, clk ports.Clock, builder AppBuilder) e
 	p.logger = &p.client.Log
 	p.poster = &p.client.Post
 	p.presentation = mm.NewDisplayPreferences(p.API)
+	p.autocompleter = command.NewAutocompleter(&p.client.User, p.presentation, clk)
 
 	p.logger.Debug("Initializing Channel service")
 	p.Channel = builder.NewChannel(p.client)

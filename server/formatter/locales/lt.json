@@ -38,6 +38,8 @@
     "delivery_status": "Pristatymas: **%s** · bandymai %d/%d",
     "delivery_reason": "Priežastis: %s",
     "next_check": "Kitas patikrinimas: %s",
-    "check_delivery": "Tikrinti pristatymą"
+    "check_delivery": "Tikrinti pristatymą",
+    "today": "Šiandien",
+    "tomorrow": "Rytoj"
   }
 }

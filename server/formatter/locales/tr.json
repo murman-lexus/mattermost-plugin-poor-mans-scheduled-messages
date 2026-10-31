@@ -38,6 +38,8 @@
     "delivery_status": "Teslimat: **%s** · denemeler %d/%d",
     "delivery_reason": "Neden: %s",
     "next_check": "Sonraki kontrol: %s",
-    "check_delivery": "Teslimatı kontrol et"
+    "check_delivery": "Teslimatı kontrol et",
+    "today": "Bugün",
+    "tomorrow": "Yarın"
   }
 }

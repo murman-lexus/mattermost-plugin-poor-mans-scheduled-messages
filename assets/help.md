@@ -4,6 +4,10 @@
 
 **How to schedule:**
 
+Start typing `/schedule at ` and choose a suggested time, or type your own. The suggestions show the resolved date, your preferred 12/24-hour clock, and your Mattermost time zone. After the time, choose `message` to write the text, or choose an `on YYYY-MM-DD` suggestion for a specific date. Dates are calculated in your time zone; today's date is omitted if the selected time has already passed.
+
+You can still enter any supported time or date manually. Suggestions are examples, not a restriction on accepted values. If your client does not display the suggestions, use the syntax and examples below.
+
 Switch to the channel or direct message where you want the message to appear, then type:
 
 `/schedule at <time> [on <date>] message <your message text>`

@@ -38,6 +38,8 @@
     "delivery_status": "Levering: **%s** · forsøg %d/%d",
     "delivery_reason": "Årsag: %s",
     "next_check": "Næste kontrol: %s",
-    "check_delivery": "Kontrollér levering"
+    "check_delivery": "Kontrollér levering",
+    "today": "I dag",
+    "tomorrow": "I morgen"
   }
 }

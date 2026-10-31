@@ -38,6 +38,8 @@
     "delivery_status": "Dostava: **%s** · pokušaji %d/%d",
     "delivery_reason": "Razlog: %s",
     "next_check": "Sljedeća provjera: %s",
-    "check_delivery": "Provjeri dostavu"
+    "check_delivery": "Provjeri dostavu",
+    "today": "Danas",
+    "tomorrow": "Sutra"
   }
 }

@@ -38,6 +38,8 @@
     "delivery_status": "投递：**%s** · 尝试 %d/%d",
     "delivery_reason": "原因：%s",
     "next_check": "下次检查：%s",
-    "check_delivery": "检查投递"
+    "check_delivery": "检查投递",
+    "today": "今天",
+    "tomorrow": "明天"
   }
 }

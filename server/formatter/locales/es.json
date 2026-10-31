@@ -38,6 +38,8 @@
     "delivery_status": "Entrega: **%s** · intentos %d/%d",
     "delivery_reason": "Motivo: %s",
     "next_check": "Próxima comprobación: %s",
-    "check_delivery": "Comprobar entrega"
+    "check_delivery": "Comprobar entrega",
+    "today": "Hoy",
+    "tomorrow": "Mañana"
   }
 }
