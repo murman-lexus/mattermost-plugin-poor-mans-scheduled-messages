@@ -25,14 +25,15 @@ func NewScheduledPostService(client *pluginapi.Client) *ScheduledPostService {
 // CreatePost checks live account, membership and channel permissions on every call.
 // The plugin's CreatePost API does not enforce the author's permissions itself.
 func (s *ScheduledPostService) CreatePost(post *model.Post) error {
-	if err := s.checkAuthorAccess(post); err != nil {
+	if err := s.CheckAuthorAccess(post.UserId, post.ChannelId); err != nil {
 		return fmt.Errorf("%w: %w", types.ErrPublicationBlocked, err)
 	}
 	return s.PostService.CreatePost(post)
 }
 
-func (s *ScheduledPostService) checkAuthorAccess(post *model.Post) error {
-	user, err := s.client.User.Get(post.UserId)
+// CheckAuthorAccess also validates the author when a form is opened or submitted.
+func (s *ScheduledPostService) CheckAuthorAccess(userID, channelID string) error {
+	user, err := s.client.User.Get(userID)
 	if err != nil {
 		return fmt.Errorf("cannot verify the author's account: %w", err)
 	}
@@ -43,7 +44,7 @@ func (s *ScheduledPostService) checkAuthorAccess(post *model.Post) error {
 		return errors.New("author's account is deactivated")
 	}
 
-	member, err := s.client.Channel.GetMember(post.ChannelId, post.UserId)
+	member, err := s.client.Channel.GetMember(channelID, userID)
 	if errors.Is(err, pluginapi.ErrNotFound) || (err == nil && member == nil) {
 		return errors.New("author is no longer a member of the destination channel")
 	}
@@ -61,10 +62,10 @@ func (s *ScheduledPostService) checkAuthorAccess(post *model.Post) error {
 	if major < 9 {
 		readPermission = model.PermissionReadChannel
 	}
-	if !s.client.User.HasPermissionToChannel(post.UserId, post.ChannelId, readPermission) {
+	if !s.client.User.HasPermissionToChannel(userID, channelID, readPermission) {
 		return errors.New("author no longer has access to the destination channel")
 	}
-	if !s.client.User.HasPermissionToChannel(post.UserId, post.ChannelId, model.PermissionCreatePost) {
+	if !s.client.User.HasPermissionToChannel(userID, channelID, model.PermissionCreatePost) {
 		return errors.New("author does not have permission to post in the destination channel")
 	}
 	return nil

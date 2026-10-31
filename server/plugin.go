@@ -94,6 +94,7 @@ type Plugin struct {
 	poster                 ports.PostService
 	presentation           ports.DisplayPreferences
 	autocompleter          *command.Autocompleter
+	scheduleForm           ports.ScheduleFormService
 }
 
 func (p *Plugin) loadHelpText(text string) (string, error) {
@@ -200,6 +201,7 @@ func (p *Plugin) initialize(botID string, clk ports.Clock, builder AppBuilder) e
 	p.Channel = builder.NewChannel(p.client)
 	p.logger.Debug("Initializing Store service", "max_user_messages", p.defaultMaxUserMessages)
 	p.Store = builder.NewStore(p.client, p.defaultMaxUserMessages)
+	p.scheduleForm = command.NewFormService(&p.client.User, p.presentation, p.Store, mm.NewScheduledPostService(p.client), &p.client.Post, p.Channel, clk)
 	p.logger.Debug("Initializing Scheduler service", "bot_id", p.BotID)
 	p.Scheduler = builder.NewScheduler(p.client, p.Store, p.Channel, p.BotID, clk, p.presentation)
 

@@ -70,6 +70,22 @@ type DisplaySettingsAPI interface {
 	GetConfig() *model.Config
 }
 
+// PublicationAccess checks whether the current author can publish to a channel.
+type PublicationAccess interface {
+	CheckAuthorAccess(userID, channelID string) error
+}
+
+// PostReader loads a thread's canonical root before scheduling a reply.
+type PostReader interface {
+	GetPost(postID string) (*model.Post, error)
+}
+
+// ScheduleFormService supplies and validates the structured scheduling form.
+type ScheduleFormService interface {
+	Defaults(userID, channelID, rootID string) (*types.ScheduleFormDefaults, error)
+	Create(userID string, input types.ScheduleFormInput) (*types.ScheduledMessage, error)
+}
+
 // UserService fetches user data.
 type UserService interface {
 	Get(userID string) (*model.User, error)
@@ -122,6 +138,7 @@ type Scheduler interface {
 // ListService builds scheduled message lists.
 type ListService interface {
 	Build(userID string) *model.CommandResponse
+	BuildInChannel(userID, channelID string) *model.CommandResponse
 }
 
 // ScheduleService schedules new messages.

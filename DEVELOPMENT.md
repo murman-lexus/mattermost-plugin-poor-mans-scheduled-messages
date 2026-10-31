@@ -145,3 +145,11 @@ Why
 4. Inject the new port into any package that needs it via constructor parameters.
 
 5. Update tests to set expectations on the new gomock mock or adjust hand fakes.
+
+### Web editor integration
+
+The editor button and form require Node.js 18 or later to build. Run `npm ci` in `webapp`, then `npm run check-types`, `npm test`, and `npm run build`. `npm run lint` checks that the production entry point bundles successfully. The bundle uses React and ReactDOM provided by Mattermost rather than shipping another copy. `make dist` includes it in the plugin archive.
+
+Form and button labels come from `server/formatter/locales`. The web scripts generate the ignored `webapp/src/labels.json` from those catalogs. Server-side validation, time-zone conversion, and idempotent creation live in `server/command/form_service.go`; the HTTP handlers use narrow ports like the command workflow. Browser tests exercise the editor integration with React and jsdom; verify the native calendar presentation and editor placement on a running Mattermost client before release.
+
+The responsive editor adapter is isolated in `webapp/src/use_editor_actions_layout.ts`. It measures each editor's own formatting bar and Send toolbar, collapses two actions only when needed, and restores its layout marker on unmount. Mattermost 10.11.4 positions `.AutoHeight` absolutely in discussions, so the reserved second row needs both cell padding and the matching `.AutoHeight` offset. When upgrading the client integration, check the main editor and discussion at widths 300, 380, 400, 440, 550, and 650 pixels, with and without channel jobs. Form success timers and responsive action transitions are covered by the web tests.

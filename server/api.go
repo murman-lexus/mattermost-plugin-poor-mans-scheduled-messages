@@ -25,6 +25,9 @@ func (p *Plugin) ServeHTTP(_ *plugin.Context, w http.ResponseWriter, r *http.Req
 	api.HandleFunc("/delete", p.UserDeleteMessage).Methods(http.MethodPost)
 	api.HandleFunc("/send", p.UserSendMessage).Methods(http.MethodPost)
 	api.HandleFunc("/autocomplete/{kind:time|date}", p.commandAutocomplete).Methods(http.MethodGet)
+	api.HandleFunc("/schedule/form", p.scheduleFormDefaults).Methods(http.MethodGet)
+	api.HandleFunc("/schedule", p.createScheduledMessage).Methods(http.MethodPost)
+	api.HandleFunc("/schedule/count", p.countScheduledMessages).Methods(http.MethodGet)
 	router.ServeHTTP(w, r)
 }
 
@@ -57,9 +60,7 @@ func (p *Plugin) UserDeleteMessage(w http.ResponseWriter, r *http.Request) {
 
 	p.logger.Debug("Calling command layer UserDeleteMessage", "user_id", userID, "message_id", msgID)
 	deletedMsg, err := p.Command.UserDeleteMessage(userID, msgID)
-	args := &model.CommandArgs{
-		UserId: userID,
-	}
+	args := listArgsForAction(userID, req)
 	p.logger.Debug("Building updated ephemeral list", "user_id", userID)
 	updatedList := p.Command.BuildEphemeralList(args)
 	p.updateEphemeralPostWithList(userID, req.PostId, req.ChannelId, updatedList)
@@ -92,7 +93,7 @@ func (p *Plugin) UserSendMessage(w http.ResponseWriter, r *http.Request) {
 	msg, err := p.Command.UserSendMessage(userID, msgID)
 	if err != nil {
 		p.logger.Error("Command layer failed to validate send", "user_id", userID, "message_id", msgID, "error_reason", logging.ErrorReason(err))
-		updatedList := p.Command.BuildEphemeralList(&model.CommandArgs{UserId: userID})
+		updatedList := p.Command.BuildEphemeralList(listArgsForAction(userID, req))
 		p.updateEphemeralPostWithList(userID, req.PostId, req.ChannelId, updatedList)
 		http.Error(w, fmt.Sprintf("Failed to send message: %v", err), operationErrorStatus(err))
 		p.sendSendError(userID, req.ChannelId, msgID, err)
@@ -103,7 +104,7 @@ func (p *Plugin) UserSendMessage(w http.ResponseWriter, r *http.Request) {
 	sendErr := p.Scheduler.SendNow(msg)
 
 	p.logger.Debug("Building updated ephemeral list", "user_id", userID)
-	updatedList := p.Command.BuildEphemeralList(&model.CommandArgs{UserId: userID})
+	updatedList := p.Command.BuildEphemeralList(listArgsForAction(userID, req))
 	p.updateEphemeralPostWithList(userID, req.PostId, req.ChannelId, updatedList)
 
 	if sendErr != nil {
@@ -117,6 +118,15 @@ func (p *Plugin) UserSendMessage(w http.ResponseWriter, r *http.Request) {
 	p.sendSendConfirmation(userID, req.ChannelId, msg)
 
 	p.logger.Debug("UserSendMessage request completed successfully", "user_id", userID, "message_id", msgID)
+}
+
+func listArgsForAction(userID string, req *model.PostActionIntegrationRequest) *model.CommandArgs {
+	args := &model.CommandArgs{UserId: userID}
+	if channelID, ok := req.Context["list_channel_id"].(string); ok && channelID != "" && channelID == req.ChannelId {
+		args.ChannelId = channelID
+		args.Command = "/" + constants.CommandTrigger + " list channel"
+	}
+	return args
 }
 
 func operationErrorStatus(err error) int {

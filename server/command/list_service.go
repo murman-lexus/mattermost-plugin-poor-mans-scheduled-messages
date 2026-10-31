@@ -34,12 +34,30 @@ func NewListService(logger ports.Logger, store ports.Store, channel ports.Channe
 
 // Build creates a scheduled message list response.
 func (l *ListService) Build(userID string) *model.CommandResponse {
+	return l.build(userID, "")
+}
+
+// BuildInChannel lists only the caller's jobs in the selected channel.
+func (l *ListService) BuildInChannel(userID, channelID string) *model.CommandResponse {
+	return l.build(userID, channelID)
+}
+
+func (l *ListService) build(userID, channelID string) *model.CommandResponse {
 	r := formatter.ForUser(l.presentation, userID)
 	l.logger.Info("Building scheduled message list for user", "user_id", userID)
 	msgs, err := l.loadMessages(userID)
 	if err != nil {
 		l.logger.Error("Failed to load messages for user", "user_id", userID, "error_reason", logging.ErrorReason(err))
 		return errorResponse(r.Text("list_error", constants.EmojiError, err))
+	}
+	if channelID != "" {
+		filtered := make([]*types.ScheduledMessage, 0, len(msgs))
+		for _, msg := range msgs {
+			if msg.UserID == userID && msg.ChannelID == channelID {
+				filtered = append(filtered, msg)
+			}
+		}
+		msgs = filtered
 	}
 	if len(msgs) == 0 {
 		l.logger.Info("User has no scheduled messages", "user_id", userID)
@@ -48,6 +66,13 @@ func (l *ListService) Build(userID string) *model.CommandResponse {
 
 	l.logger.Debug("Successfully loaded messages, building attachments", "user_id", userID, "count", len(msgs))
 	attachments := l.buildAttachments(msgs, r)
+	if channelID != "" {
+		for _, attachment := range attachments {
+			for _, action := range attachment.Actions {
+				action.Integration.Context["list_channel_id"] = channelID
+			}
+		}
+	}
 	l.logger.Debug("Successfully built attachments for message list", "user_id", userID, "count", len(attachments))
 	return successResponse(attachments, r)
 }

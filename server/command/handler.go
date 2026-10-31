@@ -80,6 +80,9 @@ func (h *Handler) Execute(args *model.CommandArgs) (*model.CommandResponse, *mod
 // BuildEphemeralList builds the scheduled messages list response.
 func (h *Handler) BuildEphemeralList(args *model.CommandArgs) *model.CommandResponse {
 	h.logger.Debug("Building ephemeral list response", "user_id", args.UserId)
+	if strings.TrimSpace(args.Command) == "/"+constants.CommandTrigger+" list channel" && args.ChannelId != "" {
+		return h.listService.BuildInChannel(args.UserId, args.ChannelId)
+	}
 	return h.listService.Build(args.UserId)
 }
 
@@ -143,6 +146,7 @@ func (h *Handler) getScheduleAutocompleteData() *model.AutocompleteData {
 	schedule.AddCommand(at)
 
 	list := model.NewAutocompleteData(constants.SubcommandList, constants.AutocompleteListHint, constants.AutocompleteListDesc)
+	list.AddStaticListArgument("Optional: show only this channel", false, []model.AutocompleteListItem{{Item: "channel", HelpText: "List your scheduled messages in the current channel"}})
 	schedule.AddCommand(list)
 
 	help := model.NewAutocompleteData(constants.SubcommandHelp, constants.AutocompleteHelpHint, constants.AutocompleteHelpDesc)

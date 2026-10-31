@@ -1,6 +1,7 @@
 package command
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"testing"
@@ -563,4 +564,36 @@ func TestCreateAttachment(t *testing.T) {
 	require.NotNil(t, deleteAction.Integration.Context)
 	assert.Equal(t, "delete", deleteAction.Integration.Context["action"])
 	assert.Equal(t, messageID, deleteAction.Integration.Context["id"])
+}
+
+func TestBuildInChannelFiltersOtherChannelsAndKeepsActionScope(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	st := mock.NewMockStore(ctrl)
+	ch := mock.NewMockChannelService(ctrl)
+	current := createTestMessage("current", "author", "channel", "selected text", "UTC", time.Now().Add(time.Hour))
+	reply := createTestMessage("reply", "author", "channel", "thread text", "UTC", time.Now().Add(2*time.Hour))
+	reply.RootID = "thread"
+	other := createTestMessage("other", "author", "another-channel", "foreign channel text", "UTC", time.Now().Add(time.Hour))
+	foreign := createTestMessage("foreign", "another-author", "channel", "foreign author text", "UTC", time.Now().Add(time.Hour))
+	st.EXPECT().ListUserMessageIDs("author").Return([]string{"current", "reply", "other", "foreign"}, nil)
+	for _, msg := range []*types.ScheduledMessage{current, reply, other, foreign} {
+		st.EXPECT().GetScheduledMessage(msg.ID).Return(msg, nil)
+	}
+	info := &ports.ChannelInfo{ChannelID: "channel"}
+	ch.EXPECT().GetInfoOrUnknown("channel").Return(info)
+	ch.EXPECT().MakeChannelLink(info, gomock.Any()).Return("~channel").Times(2)
+	response := NewListService(testutil.FakeLogger{}, st, ch, nil).BuildInChannel("author", "channel")
+	encoded, err := json.Marshal(response)
+	require.NoError(t, err)
+	require.Contains(t, string(encoded), "selected text")
+	require.Contains(t, string(encoded), "thread text")
+	require.NotContains(t, string(encoded), "foreign channel text")
+	require.NotContains(t, string(encoded), "foreign author text")
+	attachments := response.Props["attachments"].([]*model.MessageAttachment)
+	require.Len(t, attachments, 2)
+	for _, attachment := range attachments {
+		for _, action := range attachment.Actions {
+			require.Equal(t, "channel", action.Integration.Context["list_channel_id"])
+		}
+	}
 }

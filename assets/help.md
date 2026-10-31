@@ -8,6 +8,10 @@ Start typing `/schedule at ` and choose a suggested time, or type your own. The 
 
 You can still enter any supported time or date manually. Suggestions are examples, not a restriction on accepted values. If your client does not display the suggestions, use the syntax and examples below.
 
+In the web client and Desktop, you can also click the clock button in the message editor toolbar. If the buttons are grouped into a compact menu, choose **Schedule**. The form includes the message text, calendar, personal 12/24-hour time selection, and an explicit time zone. It uses the channel or thread where it was opened. Files, uploads, and message priority are not supported. On native mobile, use the commands below.
+
+After successful creation, the confirmation closes automatically with a short fade. Canceling or an error preserves the editor draft. If a save result is unknown, retry with the same fields or check `/schedule list` before creating another request. Form edits are kept only while the editor remains mounted.
+
 Switch to the channel or direct message where you want the message to appear, then type:
 
 `/schedule at <time> [on <date>] message <your message text>`
@@ -39,7 +43,9 @@ Switch to the channel or direct message where you want the message to appear, th
     /schedule at 13:00 on 2050-01-01 message End of the world
     ```
 
-**See your scheduled messages:** `/schedule list`
+**See all your scheduled messages:** `/schedule list`
+
+**See messages in this channel:** `/schedule list channel`. The list button (or list item in the compact menu) opens this list and appears only when you have scheduled jobs in this channel. It preserves your editor draft.
 
 **Send scheduled messages now:** List your messages, click the `Send` button below the message.
 

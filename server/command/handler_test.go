@@ -326,3 +326,20 @@ func TestUserSendMessage_Failure_OwnershipMismatch(t *testing.T) {
 	assert.Nil(t, returnedMsg)
 	assert.EqualError(t, err, expectedErr.Error())
 }
+
+func TestListCommandPreservesGlobalAndChannelScopes(t *testing.T) {
+	for _, scoped := range []bool{false, true} {
+		h, m, _ := setup(t)
+		response := &model.CommandResponse{Text: "expected list"}
+		commandText := "/schedule list"
+		if scoped {
+			commandText += " channel"
+			m.listService.EXPECT().BuildInChannel("author", "channel").Return(response)
+		} else {
+			m.listService.EXPECT().Build("author").Return(response)
+		}
+		got, err := h.Execute(&model.CommandArgs{UserId: "author", ChannelId: "channel", Command: commandText})
+		require.Nil(t, err)
+		require.Same(t, response, got)
+	}
+}

@@ -53,3 +53,17 @@ func (mr *MockListServiceMockRecorder) Build(userID any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Build", reflect.TypeOf((*MockListService)(nil).Build), userID)
 }
+
+// BuildInChannel mocks base method.
+func (m *MockListService) BuildInChannel(userID, channelID string) *model.CommandResponse {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "BuildInChannel", userID, channelID)
+	ret0, _ := ret[0].(*model.CommandResponse)
+	return ret0
+}
+
+// BuildInChannel indicates an expected call of BuildInChannel.
+func (mr *MockListServiceMockRecorder) BuildInChannel(userID, channelID any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BuildInChannel", reflect.TypeOf((*MockListService)(nil).BuildInChannel), userID, channelID)
+}

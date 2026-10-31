@@ -1,6 +1,10 @@
 bin/
 dist/
 webapp/src/manifest.ts
+webapp/node_modules/
+webapp/dist/
+webapp/dist-test/
+webapp/src/labels.json
 server/manifest.go
 
 # Mac

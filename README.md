@@ -29,7 +29,23 @@ With the plugin installed: `/schedule help`
 
 ..or view the help [here](assets/help.md)
 
-Command autocomplete guides you through the time, an optional date, the `message` keyword, and your message text. Time and date suggestions use your Mattermost time zone and personal 12/24-hour preference. Suggested dates include localized Today/Tomorrow labels; you can also type any supported value manually. The plugin uses server-side autocomplete without a web plugin component. Client presentation, especially in the native mobile app, should be checked on the installed client version.
+Command autocomplete guides you through the time, an optional date, the `message` keyword, and your message text. Time and date suggestions use your Mattermost time zone and personal 12/24-hour preference. Suggested dates include localized Today/Tomorrow labels; you can also type any supported value manually. Command suggestions use server-side autocomplete. Client presentation, especially in the native mobile app, should be checked on the installed client version.
+
+### Schedule from the editor
+
+In the web client and Mattermost Desktop, click the clock button in the message editor toolbar to open the scheduling form. The form copies your current text and captures the channel or thread. Choose a date from the calendar, select a time, and confirm the explicit IANA time zone (for example, `Europe/Kaliningrad`). Your Mattermost time zone and personal 12/24-hour preference provide the defaults. No command syntax is required.
+
+The menu and main form labels use the Mattermost interface language. The native date picker follows the browser or operating system language and date presentation. Some technical validation messages use English, as described below. The web integration targets Mattermost 10.11.4. Native mobile clients continue to use `/schedule` and its command suggestions.
+
+When you have active scheduled jobs in the current channel, including replies in its threads, a second button opens a private list for that channel with the existing send and cancel actions. If both buttons do not fit, they share one clock menu instead. With no jobs in the channel, the single clock button always opens creation directly. Layout uses the space in each editor, so the main channel and thread adapt independently; on very narrow editors, the Send toolbar gets a separate row. The compact menu supports arrow keys, Escape, and dismissal by clicking outside. Updates after those actions preserve the channel filter. Your editor draft is never submitted or cleared by this button. Visibility refreshes after creation, ephemeral updates, returning to the window, and every 15 seconds while the page is visible.
+
+`/schedule list` continues to show all your scheduled messages across channels. `/schedule list channel` shows only the current channel.
+
+Only text messages are supported. The creation item is disabled while files are attached or uploading, or message priority/acknowledgments are set. Viewing an existing list remains available. Scheduling preserves Markdown and thread context. Canceling or an error keeps the editor draft; a successful save clears it only if it has not changed since the form opened. Changes typed into the form are retained while reopening it in the same editor session; they are not persisted across page reloads or editor unmounting.
+
+After a successful save, the confirmation closes automatically after a short pause with a 250 ms fade. A notice about a changed editor draft stays visible longer; errors remain open. Reduced-motion preferences disable the animation.
+
+The server checks the author and destination again on submission and before delivery. Dates must be in the future. Missing and repeated local times during daylight-saving transitions are rejected; select another time or an unambiguous zone such as `UTC`. A request ID prevents duplicate creation from double clicks or retries while the job or its retained receipt exists. If a save result is unknown, retry with the same fields or check `/schedule list` before starting a new request.
 
 ### Author access checks
 
